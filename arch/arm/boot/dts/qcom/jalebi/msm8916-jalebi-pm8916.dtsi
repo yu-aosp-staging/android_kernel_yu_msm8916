@@ -15,5 +15,23 @@
 		pm8916_rtc: qcom,pm8916_rtc {
 			qcom,qpnp-rtc-alarm-pwrup = <1>;
 		};
+
+		pmx_i2c_3 {
+			/* CLK, DATA */
+			qcom,pins = <&gp 11>, <&gp 10>;
+			qcom,num-grp-pins = <2>;
+			qcom,pin-func = <2>;
+			label = "pmx_i2c_3";
+		
+			i2c_3_active: i2c_3_active {
+				drive-strength = <2>; /* 2 MA */
+				bias-disable;		  /* No PULL */
+			};
+		
+			i2c_3_sleep: i2c_3_sleep {
+				drive-strength = <2>; /* 2 MA */
+				bias-disable;		  /* No PULL */
+			};
+		};
 	};
 };
