@@ -15,7 +15,11 @@
 #include <linux/compiler.h>
 #include <asm/fpstate.h>
 
+#ifndef CONFIG_4KSTACKS
 #define THREAD_SIZE_ORDER	1
+#else
+#define THREAD_SIZE_ORDER	0
+#endif
 #define THREAD_SIZE		8192
 #define THREAD_START_SP		(THREAD_SIZE - 8)
 
