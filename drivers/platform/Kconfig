@@ -6,6 +6,7 @@ source "drivers/platform/goldfish/Kconfig"
 endif
 
 if ARCH_MSM
+source "drivers/platform/huaqin/Kconfig"
 source "drivers/platform/msm/Kconfig"
 source "drivers/platform/wingtech/Kconfig"
 source "drivers/platform/yulong/Kconfig"
