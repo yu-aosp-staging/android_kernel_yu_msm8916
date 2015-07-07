@@ -104,6 +104,15 @@ enum msm_usb_phy_type {
 	SNPS_FEMTO_PHY,
 };
 
+#ifdef CONFIG_MACH_JALEBI
+#define IDEV_CHG_MAX	750
+#define IDEV_CHG_MIN	500
+#define IUNIT		100
+
+#define IDEV_ACA_CHG_MAX	750
+#define IDEV_ACA_CHG_LIMIT	500
+#define IDEV_HVDCP_CHG_MAX	1800
+#else
 #define IDEV_CHG_MAX	1500
 #define IDEV_CHG_MIN	500
 #define IUNIT		100
@@ -111,6 +120,7 @@ enum msm_usb_phy_type {
 #define IDEV_ACA_CHG_MAX	1500
 #define IDEV_ACA_CHG_LIMIT	500
 #define IDEV_HVDCP_CHG_MAX	1800
+#endif /* CONFIG_MACH_JALEBI */
 
 /**
  * Different states involved in USB charger detection.
@@ -216,6 +226,14 @@ enum usb_ctrl {
 	NUM_CTRL,
 };
 
+#ifdef CONFIG_MACH_JALEBI
+struct otg_pinctrl_res {
+	struct pinctrl *pinctrl;
+	struct pinctrl_state *gpio_state_active;
+	struct pinctrl_state *gpio_state_suspend;
+};
+#endif
+
 /**
  * USB ID state
  */
@@ -315,6 +333,10 @@ struct msm_otg_platform_data {
 	int switch_sel_gpio;
 	bool phy_dvdd_always_on;
 	struct clk *system_clk;
+#ifdef CONFIG_MACH_JALEBI
+	int otg5v_en_gpio;
+	struct otg_pinctrl_res pin_res;
+#endif
 };
 
 /* phy related flags */
