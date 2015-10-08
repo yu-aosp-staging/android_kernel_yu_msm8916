@@ -8,4 +8,5 @@ endif
 if ARCH_MSM
 source "drivers/platform/msm/Kconfig"
 source "drivers/platform/wingtech/Kconfig"
+source "drivers/platform/yulong/Kconfig"
 endif
