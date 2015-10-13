@@ -904,6 +904,14 @@ config SENSORS_BMI160_ENABLE_INT2
 	 If you say yes here, you get INT2 support for Bosch Sensortec
 	 sensors BMI160.
 
+config SENSORS_PA12200001
+	tristate "TXC_PA12200001 proximity/light sensor support"
+	depends on I2C
+	default n
+	help
+	  If you say yes here you get support for TXC's PA12200001 proximity
+	  and light sensor.
+
 config SENSORS_YL_PARAMS
 	tristate "Yulong sensor parameter support"
 	default n
