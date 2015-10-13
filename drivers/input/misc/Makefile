@@ -77,6 +77,7 @@ obj-$(CONFIG_SENSORS_AKM09911_WT)	+= akm09911_wt.o
 obj-$(CONFIG_SENSORS_LIS3DH)		+= lis3dh_acc.o
 obj-$(CONFIG_SENSORS_AP3426)		+= ap3426.o
 obj-$(CONFIG_SENSORS_BMA2X2)	+= bstclass.o
+obj-$(CONFIG_SENSORS_MPU6880)		+= mpu6880.o
 obj-$(CONFIG_SENSORS_PA12200001)	+= pa12200001.o
 obj-$(CONFIG_SENSORS_YL_PARAMS)		+= yl_sensor_params.o
 
