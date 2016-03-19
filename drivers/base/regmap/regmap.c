@@ -17,6 +17,7 @@
 #include <linux/err.h>
 #include <linux/rbtree.h>
 #include <linux/sched.h>
+#include <linux/delay.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/regmap.h>
@@ -1374,151 +1375,46 @@ int _regmap_raw_multi_reg_write(struct regmap *map,
 	return ret;
 }
 
-static unsigned int _regmap_register_page(struct regmap *map,
-					  unsigned int reg,
-					  struct regmap_range_node *range)
-{
-	unsigned int win_page = (reg - range->range_min) / range->window_len;
-
-	return win_page;
-}
-
-static int _regmap_range_multi_paged_reg_write(struct regmap *map,
-					       struct reg_default *regs,
-					       size_t num_regs)
-{
-	int ret;
-	int i, n;
-	struct reg_default *base;
-	unsigned int this_page;
-	/*
-	 * the set of registers are not neccessarily in order, but
-	 * since the order of write must be preserved this algorithm
-	 * chops the set each time the page changes
-	 */
-	base = regs;
-	for (i = 0, n = 0; i < num_regs; i++, n++) {
-		unsigned int reg = regs[i].reg;
-		struct regmap_range_node *range;
-
-		range = _regmap_range_lookup(map, reg);
-		if (range) {
-			unsigned int win_page = _regmap_register_page(map, reg,
-								      range);
-
-			if (i == 0)
-				this_page = win_page;
-			if (win_page != this_page) {
-				this_page = win_page;
-				ret = _regmap_raw_multi_reg_write(map, base, n);
-				if (ret != 0)
-					return ret;
-				base += n;
-				n = 0;
-			}
-			ret = _regmap_select_page(map, &base[n].reg, range, 1);
-			if (ret != 0)
-				return ret;
-		}
-	}
-	if (n > 0)
-		return _regmap_raw_multi_reg_write(map, base, n);
-	return 0;
-}
-
-
 static int _regmap_multi_reg_write(struct regmap *map,
-				   const struct reg_default *regs,
-				   size_t num_regs)
+				   const struct reg_sequence *regs,
+				   int num_regs)
 {
-	int i;
-	int ret;
-
-	if (!map->can_multi_write) {
-		for (i = 0; i < num_regs; i++) {
-			ret = _regmap_write(map, regs[i].reg, regs[i].def);
-			if (ret != 0)
-				return ret;
-		}
-		return 0;
-	}
-
-	if (!map->format.parse_inplace)
-		return -EINVAL;
-
-	if (map->writeable_reg)
-		for (i = 0; i < num_regs; i++) {
-			int reg = regs[i].reg;
-
-			if (!map->writeable_reg(map->dev, reg))
-				return -EINVAL;
-			if (reg % map->reg_stride)
-				return -EINVAL;
-		}
-
-	if (!map->cache_bypass) {
-		for (i = 0; i < num_regs; i++) {
-			unsigned int val = regs[i].def;
-			unsigned int reg = regs[i].reg;
-
-			ret = regcache_write(map, reg, val);
-			if (ret) {
-				dev_err(map->dev,
-				"Error in caching of register: %x ret: %d\n",
-								reg, ret);
-				return ret;
-			}
-		}
-		if (map->cache_only) {
-			map->cache_dirty = true;
-			return 0;
-		}
-	}
-
-	WARN_ON(!map->bus);
-
+	int i, ret;
 
 	for (i = 0; i < num_regs; i++) {
-		unsigned int reg = regs[i].reg;
-		struct regmap_range_node *range;
-
-		range = _regmap_range_lookup(map, reg);
-		if (range) {
-			size_t len = sizeof(struct reg_default)*num_regs;
-			struct reg_default *base = kmemdup(regs, len,
-							   GFP_KERNEL);
-			if (!base)
-				return -ENOMEM;
-			ret = _regmap_range_multi_paged_reg_write(map, base,
-								  num_regs);
-			kfree(base);
-
+		if (regs[i].reg % map->reg_stride)
+			return -EINVAL;
+		ret = _regmap_write(map, regs[i].reg, regs[i].def);
+		if (ret != 0) {
+			dev_err(map->dev, "Failed to write %x = %x: %d\n",
+				regs[i].reg, regs[i].def, ret);
 			return ret;
 		}
+
+		if (regs[i].delay_us)
+			udelay(regs[i].delay_us);
 	}
-	return _regmap_raw_multi_reg_write(map, regs, num_regs);
+
+	return 0;
 }
 
 /*
  * regmap_multi_reg_write(): Write multiple registers to the device
  *
- * where the set of register,value pairs are supplied in any order,
- * possibly not all in a single range.
+ * where the set of register are supplied in any order
  *
  * @map: Register map to write to
  * @regs: Array of structures containing register,value to be written
  * @num_regs: Number of registers to write
  *
- * The 'normal' block write mode will send ultimately send data on the
- * target bus as R,V1,V2,V3,..,Vn where successively higer registers are
- * addressed. However, this alternative block multi write mode will send
- * the data as R1,V1,R2,V2,..,Rn,Vn on the target bus. The target device
- * must of course support the mode.
+ * This function is intended to be used for writing a large block of data
+ * atomically to the device in single transfer for those I2C client devices
+ * that implement this alternative block write mode.
  *
- * A value of zero will be returned on success, a negative errno will be
- * returned in error cases.
+ * A value of zero will be returned on success, a negative errno will
+ * be returned in error cases.
  */
-int regmap_multi_reg_write(struct regmap *map, const struct reg_default *regs,
+int regmap_multi_reg_write(struct regmap *map, const struct reg_sequence *regs,
 			   int num_regs)
 {
 	int ret;
@@ -1531,7 +1427,7 @@ int regmap_multi_reg_write(struct regmap *map, const struct reg_default *regs,
 
 	return ret;
 }
-EXPORT_SYMBOL(regmap_multi_reg_write);
+EXPORT_SYMBOL_GPL(regmap_multi_reg_write);
 
 /*
  * regmap_multi_reg_write_bypassed(): Write multiple registers to the
@@ -1551,7 +1447,7 @@ EXPORT_SYMBOL(regmap_multi_reg_write);
  * be returned in error cases.
  */
 int regmap_multi_reg_write_bypassed(struct regmap *map,
-				    const struct reg_default *regs,
+				    const struct reg_sequence *regs,
 				    int num_regs)
 {
 	int ret;
@@ -1570,7 +1466,7 @@ int regmap_multi_reg_write_bypassed(struct regmap *map,
 
 	return ret;
 }
-EXPORT_SYMBOL(regmap_multi_reg_write_bypassed);
+EXPORT_SYMBOL_GPL(regmap_multi_reg_write_bypassed);
 
 /**
  * regmap_raw_write_async(): Write raw values to one or more registers
@@ -1970,7 +1866,7 @@ int regmap_async_complete(struct regmap *map)
 	int ret;
 
 	/* Nothing to do with no async support */
-	if (!map->bus || !map->bus->async_write)
+	if (!map->bus->async_write)
 		return 0;
 
 	trace_regmap_async_complete_start(map->dev);

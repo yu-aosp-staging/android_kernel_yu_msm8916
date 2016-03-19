@@ -15,8 +15,6 @@
 
 #include <linux/list.h>
 #include <linux/rbtree.h>
-#include <linux/err.h>
-#include <linux/bug.h>
 
 struct module;
 struct device;
@@ -25,8 +23,6 @@ struct irq_domain;
 struct spi_device;
 struct regmap;
 struct regmap_range_cfg;
-struct regmap_field;
-struct swr_device;
 
 /* An enum of all the supported cache types */
 enum regcache_type {
@@ -47,6 +43,20 @@ enum regcache_type {
 struct reg_default {
 	unsigned int reg;
 	unsigned int def;
+};
+
+/**
+ * Register/value pairs for sequences of writes with an optional delay in
+ * microseconds to be applied after each write.
+ *
+ * @reg: Register address.
+ * @def: Register value.
+ * @delay_us: Delay to be applied after the register write in microseconds
+ */
+struct reg_sequence {
+	unsigned int reg;
+	unsigned int def;
+	unsigned int delay_us;
 };
 
 #ifdef CONFIG_REGMAP
@@ -162,9 +172,7 @@ typedef void (*regmap_unlock)(void *);
  * @use_single_rw: If set, converts the bulk read and write operations into
  *		    a series of single read and write operations. This is useful
  *		    for device that does not support bulk read and write.
- * @can_multi_write: If set, the device supports the multi write mode of bulk
- *                   write operations, if clear multi write requests will be
- *                   split into individual write operations
+ *
  * @cache_type: The actual cache type.
  * @reg_defaults_raw: Power on reset values for registers (for use with
  *                    register cache support).
@@ -215,7 +223,7 @@ struct regmap_config {
 	u8 write_flag_mask;
 
 	bool use_single_rw;
-	bool can_multi_write;
+
 	enum regmap_endian reg_format_endian;
 	enum regmap_endian val_format_endian;
 
@@ -324,8 +332,6 @@ struct regmap *regmap_init_spi(struct spi_device *dev,
 struct regmap *regmap_init_mmio_clk(struct device *dev, const char *clk_id,
 				    void __iomem *regs,
 				    const struct regmap_config *config);
-struct regmap *regmap_init_swr(struct swr_device *dev,
-			       const struct regmap_config *config);
 
 struct regmap *devm_regmap_init(struct device *dev,
 				const struct regmap_bus *bus,
@@ -338,8 +344,6 @@ struct regmap *devm_regmap_init_spi(struct spi_device *dev,
 struct regmap *devm_regmap_init_mmio_clk(struct device *dev, const char *clk_id,
 					 void __iomem *regs,
 					 const struct regmap_config *config);
-struct regmap *devm_regmap_init_swr(struct swr_device *dev,
-				    const struct regmap_config *config);
 
 /**
  * regmap_init_mmio(): Initialise register map
@@ -385,10 +389,10 @@ int regmap_raw_write(struct regmap *map, unsigned int reg,
 		     const void *val, size_t val_len);
 int regmap_bulk_write(struct regmap *map, unsigned int reg, const void *val,
 			size_t val_count);
-int regmap_multi_reg_write(struct regmap *map, const struct reg_default *regs,
+int regmap_multi_reg_write(struct regmap *map, const struct reg_sequence *regs,
 			int num_regs);
 int regmap_multi_reg_write_bypassed(struct regmap *map,
-				    const struct reg_default *regs,
+				    const struct reg_sequence *regs,
 				    int num_regs);
 int regmap_raw_write_async(struct regmap *map, unsigned int reg,
 			   const void *val, size_t val_len);
