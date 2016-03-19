@@ -311,6 +311,7 @@ static inline struct snd_mask *param_to_mask(struct snd_pcm_hw_params *p, int n)
 	return &(p->masks[n - SNDRV_PCM_HW_PARAM_FIRST_MASK]);
 }
 
+#ifdef CONFIG_SND_SOC_WSA881X
 int msm8909_wsa881x_init(struct snd_soc_dapm_context *dapm)
 {
 	u8 spkleft_ports[WSA881X_MAX_SWR_PORTS] = {100, 101, 102, 106};
@@ -366,6 +367,7 @@ int msm8909_wsa881x_init(struct snd_soc_dapm_context *dapm)
 	}
 	return 0;
 }
+#endif
 
 static void param_set_mask(struct snd_pcm_hw_params *p, int n, unsigned bit)
 {
@@ -2140,17 +2142,28 @@ static struct snd_soc_dai_link msm8x16_9326_dai[] = {
 
 static struct snd_soc_aux_dev msm8909_aux_dev[] = {
 	{
+#ifdef CONFIG_SND_SOC_WSA881X
 		.name = "wsa881x.0",
 		.codec_name =  NULL,
 		.init = msm8909_wsa881x_init,
+#else
+		.name = "NULL",
+		.codec_name =  NULL,
+		.init = NULL,
+#endif
 	},
 	{
+#ifdef CONFIG_SND_SOC_WSA881X
 		.name = "wsa881x.1",
 		.codec_name = NULL,
 		.init = msm8909_wsa881x_init,
+#else
+		.name = "NULL",
+		.codec_name =  NULL,
+		.init = NULL,
+#endif
 	},
 };
-
 static struct snd_soc_codec_conf msm8909_codec_conf[] = {
 	{
 		.dev_name = NULL,
@@ -2179,6 +2192,7 @@ static struct snd_soc_dai_link msm8x16_wcd_dai[] = {
 #else
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
+#endif
 		.no_pcm = 1,
 		.be_id = MSM_BACKEND_DAI_QUATERNARY_MI2S_RX,
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
