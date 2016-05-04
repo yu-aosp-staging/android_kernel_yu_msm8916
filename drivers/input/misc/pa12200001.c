@@ -1150,7 +1150,7 @@ static ssize_t pa12200001_show_flash(struct device *dev,
 static DEVICE_ATTR(readflash, S_IRUGO,
                    pa12200001_show_flash, NULL); //para 1:node name,/para 2:permission 3:permission function of read 4:permission function of write
 
-static void pa12200001_report_prox_event(struct pa12200001_data *ct, int value)
+static void pa12200001_report_prox_event(struct pa12200001_data *data, int value)
 {
 	ktime_t timestamp = ktime_get_boottime();
 
@@ -1162,7 +1162,7 @@ static void pa12200001_report_prox_event(struct pa12200001_data *ct, int value)
 	input_sync(data->proximity_input_dev);
 }
 
-static void pa12200001_report_light_event(struct pa12200001_data *ct, int value)
+static void pa12200001_report_light_event(struct pa12200001_data *data, int value)
 {
 	ktime_t timestamp = ktime_get_boottime();
 
