@@ -124,6 +124,21 @@ static int fb_notifier_callback(struct notifier_block *self,unsigned long event,
 #define NUM_GESTURES KEY_F4
 static DECLARE_BITMAP(gesture_bmp, NUM_GESTURES);
 
+/* Gesture keycodes */
+#define KEY_GESTURE_SLIDE_C		181
+#define KEY_GESTURE_SLIDE_E		182
+#define KEY_GESTURE_SLIDE_W		183
+#define KEY_GESTURE_SLIDE_O		184
+#define KEY_GESTURE_SLIDE_M		185
+#define KEY_GESTURE_SLIDE_Z		186
+#define KEY_GESTURE_SLIDE_V		187
+#define KEY_GESTURE_SLIDE_S		188
+#define KEY_GESTURE_SLIDE_RIGHT		189
+#define KEY_GESTURE_SLIDE_DOWN		190
+#define KEY_GESTURE_SLIDE_UP		191
+#define KEY_GESTURE_SLIDE_LEFT		192
+#define KEY_GESTURE_DOUBLE_TAP		193
+
 /*define golbal variable*/
 static struct gsl_ts_data *ddata = NULL;
 
@@ -1292,49 +1307,49 @@ static irqreturn_t gsl_ts_isr(int irq, void *priv) {
 	/* Gesture Resume */
 	if (GE_ENABLE == gsl_gesture_status && ((gsl_gesture_flag == 1)||(gsl_gesture_flag == 2))) {
 		int tmp_c;
-		u8 key_data = 0;
+		u16 key_data = 0;
 		tmp_c = gsl_obtain_gesture();
 		print_info("gsl_obtain_gesture():tmp_c = 0x%x[%d]\n",tmp_c,test_count++);
 		print_info("gsl_obtain_gesture():tmp_c = 0x%x\n",tmp_c);
 		switch(tmp_c) {
 			case (int)'C':
-				key_data = KEY_C;
+				key_data = KEY_GESTURE_SLIDE_C;
 				break;
 			case (int)'E':
-				key_data = KEY_E;
+				key_data = KEY_GESTURE_SLIDE_E;
 				break;
 			case (int)'W':
-				key_data = KEY_W;
+				key_data = KEY_GESTURE_SLIDE_W;
 				break;
 			case (int)'O':
-				key_data = KEY_O;
+				key_data = KEY_GESTURE_SLIDE_O;
 				break;
 			case (int)'M':
-				key_data = KEY_M;
+				key_data = KEY_GESTURE_SLIDE_M;
 				break;
 			case (int)'Z':
-				key_data = KEY_Z;
+				key_data = KEY_GESTURE_SLIDE_Z;
 				break;
 			case (int)'V':
-				key_data = KEY_V;
+				key_data = KEY_GESTURE_SLIDE_V;
 				break;
 			case (int)'S':
-				key_data = KEY_S;
+				key_data = KEY_GESTURE_SLIDE_S;
 				break;
 			case (int)'*':	
-				key_data = KEY_WAKEUP;
-				break;/* double click */
+				key_data = KEY_GESTURE_DOUBLE_TAP;
+				break;
 				case (int)0xa1fa:
-				key_data = KEY_F1;
-				break;/* right */
+				key_data = KEY_GESTURE_SLIDE_RIGHT;
+				break;
 			case (int)0xa1fd:
-				key_data = KEY_F2;
-				break;/* down */
+				key_data = KEY_GESTURE_SLIDE_DOWN;
+				break;
 			case (int)0xa1fc:	
-				key_data = KEY_F3;
-				break;/* up */
-			case (int)0xa1fb:	/* left */
-				key_data = KEY_F4;
+				key_data = KEY_GESTURE_SLIDE_UP;
+				break;
+			case (int)0xa1fb:
+				key_data = KEY_GESTURE_SLIDE_LEFT;
 				break;	
 			
 			}
@@ -1350,9 +1365,9 @@ static irqreturn_t gsl_ts_isr(int irq, void *priv) {
 				wake_lock_timeout(&ddata->gesture_wake_lock,
 					GSL_GESTURE_WAKELOCK_DUR);
 
-				input_report_key(idev, KEY_WAKEUP,1);
+				input_report_key(idev, key_data, 1);
 				input_sync(idev);
-				input_report_key(idev,KEY_WAKEUP,0);
+				input_report_key(idev, key_data, 0);
 				input_sync(idev);
 			}
 			goto schedule;
@@ -1711,19 +1726,19 @@ static int gsl_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 	queue_delayed_work(gsl_timer_workqueue, &gsl_timer_check_work, GSL_TIMER_CHECK_CIRCLE);
 	ret = sysfs_create_group(&client->dev.kobj,&gsl_attr_group);
 
-	input_set_capability(ddata->idev, EV_KEY, KEY_WAKEUP);
-	input_set_capability(ddata->idev, EV_KEY, KEY_C);
-	input_set_capability(ddata->idev, EV_KEY, KEY_E);
-	input_set_capability(ddata->idev, EV_KEY, KEY_O);
-	input_set_capability(ddata->idev, EV_KEY, KEY_W);
-	input_set_capability(ddata->idev, EV_KEY, KEY_M);
-	input_set_capability(ddata->idev, EV_KEY, KEY_Z);
-	input_set_capability(ddata->idev, EV_KEY, KEY_V);
-	input_set_capability(ddata->idev, EV_KEY, KEY_S);
-	/*input_set_capability(tpd->dev, EV_KEY, KEY_F1);
-	input_set_capability(tpd->dev, EV_KEY, KEY_F2);
-	input_set_capability(tpd->dev, EV_KEY, KEY_F3);
-	input_set_capability(tpd->dev, EV_KEY, KEY_F4);  */
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_DOUBLE_TAP);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_C);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_E);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_O);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_W);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_M);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_Z);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_V);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_S);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_DOWN);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_UP);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_LEFT);
+	input_set_capability(ddata->idev, EV_KEY, KEY_GESTURE_SLIDE_RIGHT);
 
 #ifdef GSL_PROXIMITY_SENSOR
 	input_dev_ps = input_allocate_device();
@@ -1756,7 +1771,19 @@ static int gsl_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 	info +=  sprintf(info,"GSL915,");
 	info +=  sprintf(info,"%x",version);
 
-	set_bit(KEY_WAKEUP, gesture_bmp);
+	set_bit(KEY_GESTURE_DOUBLE_TAP, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_UP, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_DOWN, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_LEFT, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_RIGHT, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_O, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_C, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_M, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_E, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_W, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_Z, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_V, gesture_bmp);
+	set_bit(KEY_GESTURE_SLIDE_S, gesture_bmp);
 	wake_lock_init(&ddata->gesture_wake_lock,
 		WAKE_LOCK_SUSPEND, "gsl_ts_gesture");
 
