@@ -98,7 +98,7 @@ enum dsi_panel_status_mode {
 	ESD_REG,
 	ESD_REG_NT35596,
 	ESD_TE,
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 	ESD_REG_YL,
 #endif
 	ESD_MAX,
@@ -255,7 +255,7 @@ struct dsi_panel_cmds {
 	int link_state;
 };
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 struct status_reg {
 	u8 reg;
 	u8 num_vals;
@@ -391,7 +391,7 @@ struct mdss_dsi_ctrl_pdata {
 	struct dsi_panel_cmds post_panel_on_cmds;
 	struct dsi_panel_cmds off_cmds;
 	struct dsi_panel_cmds status_cmds;
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 	struct dsi_panel_status_regs status_regs;
 #endif
 	u32 status_cmds_rlen;

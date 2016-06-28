@@ -187,7 +187,7 @@ static struct dsi_cmd_desc backlight_cmd = {
 	led_pwm1
 };
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 static int backlight_response_curve[] = {
 	0,  4,  4,  4,  4,  6,  6,  8,
 	8,  10, 10, 10, 10, 10, 10, 11,
@@ -237,7 +237,7 @@ static void mdss_dsi_panel_bklt_dcs(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 
 	pr_debug("%s: level=%d\n", __func__, level);
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 	led_pwm1[1] = (unsigned char)backlight_response_curve[level];
 #else
 	led_pwm1[1] = (unsigned char)level;
@@ -777,7 +777,7 @@ static int mdss_dsi_panel_low_power_config(struct mdss_panel_data *pdata,
 	return 0;
 }
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 static int mdss_dsi_parse_status_regs(struct device_node *np,
 		struct dsi_panel_status_regs *status_regs,  char *cmd_reg)
 {
@@ -1262,7 +1262,7 @@ static int mdss_dsi_nt35596_read_status(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 	}
 }
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 static int mdss_dsi_yl_read_status(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 {
 	int i, j;
@@ -1983,7 +1983,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->off_cmds,
 		"qcom,mdss-dsi-off-command", "qcom,mdss-dsi-off-command-state");
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 	pinfo->mipi.has_tps65132 = of_property_read_bool(np,
 					"qcom,has-tps65132");
 
@@ -2024,7 +2024,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 			else
 				pr_err("TE-ESD not valid for video mode\n");
 		}
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 		else if (!strcmp(data, "reg_read_yl")) {
 			ctrl_pdata->status_mode = ESD_REG_YL;
 			ctrl_pdata->status_error_count = 0;

@@ -1,7 +1,7 @@
 #ifndef _LINUX_GOODIX_CONFIG_H
 #define	_LINUX_GOODIX_CONFIG_H
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 const char * TW_IC_PREFIX_NAME = "GT970";
 #else
 const char * TW_IC_PREFIX_NAME = "GT9158";
@@ -40,7 +40,7 @@ const char * TW_IC_PREFIX_NAME = "GT9158";
 
 //#define TW_GLOVE_SWITCH       0
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 #define GTP_COB		      1
 #else
 #define GTP_COB		      0
@@ -58,7 +58,7 @@ struct touch_panel_info
 };
 
 //[YULONG BEGIN] Upload new touchscreen configs to solve touchscreen failure in games occationally by litao3@yulong.com 2014-12-23
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 static unsigned char CTP_CFG_GROUP1[]=  
 {
     #include "coolpad_8675_00_V46_20141111_finger.cfg"

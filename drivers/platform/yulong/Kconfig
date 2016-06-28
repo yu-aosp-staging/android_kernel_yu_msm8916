@@ -15,7 +15,7 @@ config MACH_YULONG_MSM8939
 
 menu "Yulong board selection"
 
-config MACH_CP8675
+config MACH_TOMATO
 	bool "CP8675_I01 board"
 	select MACH_YULONG_MSM8939
 	help
