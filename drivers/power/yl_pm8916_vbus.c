@@ -24,7 +24,7 @@
 #include <linux/bitops.h>
 #include "yl_pm8916_vbus.h"
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 #define TW_GLOVE_SWITCH 1
 #else
 #define TW_GLOVE_SWITCH 0
