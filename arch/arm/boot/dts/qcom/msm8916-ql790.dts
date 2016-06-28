@@ -13,7 +13,7 @@
 /dts-v1/;
 
 #include "msm8916.dtsi"
-#include "ql790/msm8916-ql790.dtsi"
+#include "jalebi/msm8916-jalebi.dtsi"
 #include "msm8916-memory.dtsi"
 
 / {
