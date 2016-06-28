@@ -15,7 +15,7 @@ config MACH_WINGTECH_MSM8916
 
 menu "Wingtech board selection"
 
-config MACH_T86519A1
+config MACH_LETTUCE
 	bool "T86519A1 board"
 	select MACH_WINGTECH_MSM8916
 	help

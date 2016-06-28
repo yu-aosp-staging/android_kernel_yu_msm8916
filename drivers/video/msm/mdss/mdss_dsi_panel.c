@@ -36,7 +36,7 @@
 #define MIN_REFRESH_RATE 48
 #define DEFAULT_MDP_TRANSFER_TIME 14000
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 #define TPS65132_GPIO_POS_EN 902
 #define TPS65132_GPIO_NEG_EN 903
 #endif
@@ -654,7 +654,7 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 		return -EINVAL;
 	}
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	gpio_set_value(TPS65132_GPIO_POS_EN, 1);
 	gpio_set_value(TPS65132_GPIO_NEG_EN, 1);
 #endif
@@ -725,7 +725,7 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		return -EINVAL;
 	}
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	gpio_set_value(TPS65132_GPIO_POS_EN, 0);
 	gpio_set_value(TPS65132_GPIO_NEG_EN, 0);
 #endif

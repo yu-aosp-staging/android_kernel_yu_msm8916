@@ -10,8 +10,8 @@
  * GNU General Public License for more details.
  */
 
-#include "msm8916-camera-sensor-t86519a1.dtsi"
-#include "msm-pm8916-t86519a1.dtsi"
+#include "msm8916-camera-sensor-lettuce.dtsi"
+#include "msm-pm8916-lettuce.dtsi"
 #include "dsi-panel-txd-hx8394d-720p-video.dtsi"
 #include "dsi-panel-ofilm-hx8394d-720p-video.dtsi"
 
