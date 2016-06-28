@@ -88,7 +88,7 @@ extern u16 total_len;
 #define SWITCH_OFF            0
 #define SWITCH_ON             1
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 #define TW_GLOVE_SWITCH  1
 #else
 #define TW_GLOVE_SWITCH  0
