@@ -14,7 +14,7 @@
 
 #include "msm8939.dtsi"
 #include "msm8939-audio-internal_codec.dtsi"
-#include "cp8675/msm8939-cp8675.dtsi"
+#include "tomato/msm8939-tomato.dtsi"
 
 / {
 	model = "Qualcomm Technologies, Inc. MSM 8939 CP8675";

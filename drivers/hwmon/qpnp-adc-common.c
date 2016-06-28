@@ -45,7 +45,7 @@
    their framework which is 0.1DegC. True resolution of 0.1DegC
    will result in the below table size to increase by 10 times */
 static const struct qpnp_vadc_map_pt adcmap_btm_threshold[] = {
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 	{-200,	1545},
 	{-180,	1523},
 	{-160,	1501},
@@ -247,7 +247,7 @@ static const struct qpnp_vadc_map_pt adcmap_btm_threshold[] = {
 	{770,	213},
 	{780,	208},
 	{790,	203}
-#endif /* CONFIG_MACH_CP8675 || CONFIG_MACH_JALEBI */
+#endif /* CONFIG_MACH_TOMATO || CONFIG_MACH_JALEBI */
 };
 
 static const struct qpnp_vadc_map_pt adcmap_qrd_btm_threshold[] = {
