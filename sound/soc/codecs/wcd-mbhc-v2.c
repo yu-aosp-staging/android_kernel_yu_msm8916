@@ -31,7 +31,7 @@
 #include "wcd-mbhc-v2.h"
 #include "wcdcal-hwdep.h"
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 #include "msm8x16_wcd_registers.h"
 #endif
 
@@ -145,7 +145,7 @@ static void wcd_program_btn_threshold(const struct wcd_mbhc *mbhc, bool micbias)
 	mbhc->mbhc_cb->set_btn_thr(codec, btn_low, btn_high, btn_det->num_btn,
 				   micbias);
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 	snd_soc_update_bits(codec, MSM8X16_WCD_A_ANALOG_MBHC_BTN0_ZDETL_CTL, 0xFC, 0x20);
 	snd_soc_update_bits(codec, MSM8X16_WCD_A_ANALOG_MBHC_BTN1_ZDETM_CTL, 0xFC, 0x68);
 	snd_soc_update_bits(codec, MSM8X16_WCD_A_ANALOG_MBHC_BTN2_ZDETH_CTL, 0xFC, 0x40);

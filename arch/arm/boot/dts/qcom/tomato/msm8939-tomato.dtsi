@@ -10,12 +10,12 @@
  * GNU General Public License for more details.
  */
 
-#include "msm8939-audio-internal_codec-cp8675.dtsi"
-#include "msm8939-camera-sensor-cp8675.dtsi"
-#include "msm8939-panels-cp8675.dtsi"
-#include "msm8939-pinctrl-cp8675.dtsi"
-#include "msm8939-regulator-cp8675.dtsi"
-#include "msm-pm8916-cp8675.dtsi"
+#include "msm8939-audio-internal_codec-tomato.dtsi"
+#include "msm8939-camera-sensor-tomato.dtsi"
+#include "msm8939-panels-tomato.dtsi"
+#include "msm8939-pinctrl-tomato.dtsi"
+#include "msm8939-regulator-tomato.dtsi"
+#include "msm-pm8916-tomato.dtsi"
 
 / {
 	memory {

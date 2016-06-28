@@ -47,7 +47,7 @@
 		qcom,actuator-src = <&actuator0>;
 		qcom,led-flash-src = <&led_flash0>;
 		qcom,mount-angle = <90>;
-		qcom,sensor-name = "imx135_cp8675";
+		qcom,sensor-name = "imx135_tomato";
 		cam_vdig-supply = <&pm8916_l5>;
 		cam_vio-supply = <&pm8916_l6>;
 		cam_vana-supply = <&pm8916_l6>;
@@ -98,7 +98,7 @@
 		qcom,csiphy-sd-index = <0>;
 		qcom,csid-sd-index = <0>;
 		qcom,mount-angle = <90>;
-		qcom,sensor-name = "imx214_cp8675";
+		qcom,sensor-name = "imx214_tomato";
 		qcom,actuator-src = <&actuator0>;
 		qcom,led-flash-src = <&led_flash0>;
 		cam_vdig-supply = <&pm8916_l6>;
@@ -149,7 +149,7 @@
 		qcom,csiphy-sd-index = <1>;
 		qcom,csid-sd-index = <1>;
 		qcom,mount-angle = <270>;
-		qcom,sensor-name = "ov5648_cp8675";
+		qcom,sensor-name = "ov5648_tomato";
 		cam_vdig-supply = <&pm8916_l6>;
 		cam_vio-supply = <&pm8916_l6>;
 		qcom,cam-vreg-name = "cam_vdig", "cam_vio";

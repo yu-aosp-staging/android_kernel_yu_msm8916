@@ -7,7 +7,7 @@
 
 #define HEADER_UPDATE_DATA goodix_firmware
 
-#ifdef CONFIG_MACH_CP8675
+#ifdef CONFIG_MACH_TOMATO
 const unsigned char goodix_firmware[] = {
 #ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_CFG
 	#include "GT970_1039_DACA"
