@@ -36,13 +36,13 @@
 #include "../codecs/wcd9335.h"
 #include "msm-audio-pinctrl.h"
 #include "../codecs/wsa881x.h"
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 #include "../codecs/vegas.h"
 #endif
 
 #define DRV_NAME "msm8x16-asoc-wcd"
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 #define MSM_VEGAS_FLL_CLK_SOURCE ARIZONA_FLL_SRC_MCLK1
 #define MSM_VEGAS_FLL_CLK_FREQ ( 48000 * 512 * 2 )
 #define MSM_VEGAS_SYS_CLK_FREQ ( 48000 * 512 * 2 )
@@ -422,7 +422,7 @@ static const char *const loopback_mclk_text[] = {"DISABLE", "ENABLE"};
 static char const *pri_rx_sample_rate_text[] = {"KHZ_48", "KHZ_96",
 					"KHZ_192", "KHZ_8",
 					"KHZ_16", "KHZ_32"};
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 static const char *const quatmi2s_clk_text[] = {"DISABLE", "ENABLE"};
 #endif
 
@@ -1078,7 +1078,7 @@ static int msm8x16_enable_codec_ext_clk(struct snd_soc_codec *codec,
 	return ret;
 }
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 static struct snd_soc_codec *byt_get_codec(struct snd_soc_card *card)
 {
 	bool found = false;
@@ -1214,7 +1214,7 @@ static const struct soc_enum msm_snd_enum[] = {
 	SOC_ENUM_SINGLE_EXT(2, loopback_mclk_text),
 	SOC_ENUM_SINGLE_EXT(6, pri_rx_sample_rate_text),
 	SOC_ENUM_SINGLE_EXT(2, mi2s_rx_sample_rate_text),
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	SOC_ENUM_SINGLE_EXT(2, quatmi2s_clk_text),
 #endif
 };
@@ -1247,7 +1247,7 @@ static int msm8x16_mclk_event(struct snd_soc_dapm_widget *w,
 {
 	struct msm8916_asoc_mach_data *pdata = NULL;
 	int ret = 0;
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	struct snd_soc_dapm_context *dapm = w->dapm;
 	struct snd_soc_card *card = dapm->card;
 	struct snd_soc_codec *codec;
@@ -1276,7 +1276,7 @@ static int msm8x16_mclk_event(struct snd_soc_dapm_widget *w,
 			if (atomic_read(&pdata->mclk_rsc_ref) == 0) {
 				pr_debug("%s: disabling MCLK\n", __func__);
 				/* disable the codec mclk config*/
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 				msm8x16_wcd_mclk_enable(codec, 0, true);
 				msm8x16_enable_codec_ext_clk(codec, 0, true);
 #else
@@ -2014,7 +2014,7 @@ static struct snd_soc_ops msm_pri_auxpcm_be_ops = {
 	.shutdown = msm_prim_auxpcm_shutdown,
 };
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 static int wm8998_snd_startup_clk(void)
 {
 	int ret = 0;
@@ -2276,7 +2276,7 @@ static struct snd_soc_dai_link msm8x16_wcd_dai[] = {
 		.stream_name = "Quaternary MI2S Playback",
 		.cpu_dai_name = "msm-dai-q6-mi2s.3",
 		.platform_name = "msm-pcm-routing",
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 		.codec_name = "vegas-codec",
 		.codec_dai_name = "vegas-aif1",
 		.init = &wm8998_init,
@@ -2954,7 +2954,7 @@ static struct snd_soc_card bear_cards[MAX_SND_CARDS] = {
 		.name		= "msm8x16-snd-card",
 		.dai_link	= msm8x16_wcd_dai_links,
 		.num_links	= ARRAY_SIZE(msm8x16_wcd_dai_links),
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 		.set_bias_level = msm_wm8998_set_bias_level,
 		.set_bias_level_post = msm_wm8998_set_bias_level_post,
 #endif
