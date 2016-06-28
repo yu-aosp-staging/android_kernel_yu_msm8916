@@ -10,11 +10,11 @@
  * GNU General Public License for more details.
  */
 
-#include "msm8916-ql790-misc.dtsi"
-#include "msm8916-ql790-camera.dtsi"
-#include "msm8916-ql790-lcd_panel-settings.dtsi"
-#include "msm8916-ql790-pm8916.dtsi"
-#include "msm8916-ql790-tp.dtsi"
+#include "msm8916-jalebi-misc.dtsi"
+#include "msm8916-jalebi-camera.dtsi"
+#include "msm8916-jalebi-lcd_panel-settings.dtsi"
+#include "msm8916-jalebi-pm8916.dtsi"
+#include "msm8916-jalebi-tp.dtsi"
 
 &soc {
 	gpio-leds {
@@ -139,7 +139,7 @@
 	qcom,rpull-up-kohm = <100>;
 	qcom,vref-batt-therm = <1800000>;
 
-		#include "msm8916-ql790-sunwoda-4v35-2000mah.dtsi"
+		#include "msm8916-jalebi-sunwoda-4v35-2000mah.dtsi"
 	};
 };
 
