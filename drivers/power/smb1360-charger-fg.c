@@ -413,7 +413,7 @@ struct smb1360_chip {
 	bool				batt_warm;
 	bool				batt_cool;
 	bool				batt_full;
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	bool				power_ok;
 #endif
 	bool				resume_completed;
@@ -513,7 +513,7 @@ static void smb1360_wakeup_src_init(struct smb1360_chip *chip)
 	wakeup_source_init(&chip->smb1360_ws.source, "smb1360");
 }
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 static int high_temp_chg = 1;
 #endif
 
@@ -1159,7 +1159,7 @@ static int smb1360_get_prop_batt_status(struct smb1360_chip *chip)
 		return POWER_SUPPLY_STATUS_UNKNOWN;
 
 	if (chip->batt_full
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 			&& chip->usb_present
 #endif
 	)
@@ -1173,7 +1173,7 @@ static int smb1360_get_prop_batt_status(struct smb1360_chip *chip)
 
 	pr_debug("STATUS_3_REG = %x\n", reg);
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	if (!chip->power_ok)
 		return POWER_SUPPLY_STATUS_DISCHARGING;
 #endif
@@ -1265,7 +1265,7 @@ static int smb1360_get_prop_batt_capacity(struct smb1360_chip *chip)
 	pr_debug("msys_soc_reg=0x%02x, fg_soc=%d batt_full = %d\n", reg,
 						soc, chip->batt_full);
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	if (soc == 100 && chip->batt_full == 0)
 		chip->batt_full = 1;
 	else if (soc < 100 && chip->batt_full == 1)
@@ -2148,7 +2148,7 @@ static void smb1360_jeita_work_fn(struct work_struct *work)
 							jeita_work);
 	temp = smb1360_get_prop_batt_temp(chip);
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	if(!high_temp_chg && temp < chip->warm_bat_decidegc) {
 		pr_info("low temp threshold, enable charging\n");
 		smb1360_charging_disable(chip, USER, 0);
@@ -2171,7 +2171,7 @@ static void smb1360_jeita_work_fn(struct work_struct *work)
 		/* battery status is warm, do compensation manually */
 		chip->batt_warm = true;
 		chip->batt_cool = false;
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 		if(high_temp_chg && temp >= chip->hot_bat_decidegc) {
 			high_temp_chg = 0;
 			pr_info("high temp threshold, disable charging\n");
@@ -2619,7 +2619,7 @@ static int otg_oc_handler(struct smb1360_chip *chip, u8 rt_stat)
 	return 0;
 }
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 static int power_ok_handler(struct smb1360_chip *chip, u8 rt_stat)
 {
 	pr_debug("xxx::usb in::rt_stat = 0x%02x\n", rt_stat);
@@ -2741,7 +2741,7 @@ static struct irq_handler_info handlers[] = {
 		{
 			{
 				.name		= "power_ok",
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 				.smb_irq	= power_ok_handler,
 #endif
 			},

@@ -588,7 +588,7 @@ static int32_t msm_actuator_vreg_control(struct msm_actuator_ctrl_t *a_ctrl,
 	return rc;
 }
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 static int msm_actuator_software_pwdn(struct msm_actuator_ctrl_t *a_ctrl)
 {
 	int rc = 0;
@@ -625,7 +625,7 @@ static int32_t msm_actuator_power_down(struct msm_actuator_ctrl_t *a_ctrl)
 					__func__, __LINE__);
 		}
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 		msm_actuator_software_pwdn(a_ctrl);
 #endif
 
