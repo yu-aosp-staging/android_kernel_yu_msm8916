@@ -37,7 +37,7 @@
 #include <linux/sensors.h>
 
 #define AKM_DEBUG_IF			0
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 #define AKM_HAS_RESET			0
 #else
 #define AKM_HAS_RESET			1
@@ -1507,7 +1507,7 @@ static int akm_compass_suspend(struct device *dev)
 	if (akm->state.power_on)
 		akm_compass_power_set(akm, false);
 
-#ifndef CONFIG_MACH_T86519A1
+#ifndef CONFIG_MACH_LETTUCE
 	ret = pinctrl_select_state(akm->pinctrl, akm->pin_sleep);
 	if (ret)
 		dev_err(dev, "Can't select pinctrl state\n");
@@ -1524,7 +1524,7 @@ static int akm_compass_resume(struct device *dev)
 	int ret = 0;
 	uint8_t mode;
 
-#ifndef CONFIG_MACH_T86519A1
+#ifndef CONFIG_MACH_LETTUCE
 	ret = pinctrl_select_state(akm->pinctrl, akm->pin_default);
 	if (ret)
 		dev_err(dev, "Can't select pinctrl state\n");
@@ -1767,7 +1767,7 @@ static int akm_compass_parse_dt(struct device *dev,
 }
 #endif /* !CONFIG_OF */
 
-#ifndef CONFIG_MACH_T86519A1
+#ifndef CONFIG_MACH_LETTUCE
 static int akm_pinctrl_init(struct akm_compass_data *akm)
 {
 	struct i2c_client *client = akm->i2c;
@@ -2196,7 +2196,7 @@ int akm_compass_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	/* set client data */
 	i2c_set_clientdata(client, s_akm);
 
-#ifndef CONFIG_MACH_T86519A1
+#ifndef CONFIG_MACH_LETTUCE
 	/* initialize pinctrl */
 	if (!akm_pinctrl_init(s_akm)) {
 		err = pinctrl_select_state(s_akm->pinctrl, s_akm->pin_default);

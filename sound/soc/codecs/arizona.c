@@ -900,7 +900,7 @@ int arizona_init_gpio(struct snd_soc_codec *codec)
 		break;
 	}
 
-#ifndef CONFIG_MACH_T86519A1
+#ifndef CONFIG_MACH_LETTUCE
 	snd_soc_dapm_disable_pin(&codec->dapm, "DRC1 Signal Activity");
 #endif
 	for (i = 0; i < ARRAY_SIZE(arizona->pdata.gpio_defaults); i++) {
@@ -3704,7 +3704,7 @@ static int arizona_startup(struct snd_pcm_substream *substream,
 	else
 		constraint = &arizona_48k_constraint;
 
-#ifdef CONFIG_MACH_T86519A1
+#ifdef CONFIG_MACH_LETTUCE
 	/*
 	 * This works around a crash when enabling mp3/aac offload on Lettuce
 	 *
