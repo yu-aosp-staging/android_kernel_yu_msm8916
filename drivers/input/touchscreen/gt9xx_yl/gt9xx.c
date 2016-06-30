@@ -569,9 +569,11 @@ s32 gtp_init_panel(struct goodix_ts_data *ts) {
     }
 
     ret = gtp_i2c_read_dbl_check(ts->client, GTP_REG_SENSOR_ID, &sensor_id, 1);
-    if (SUCCESS == ret && (sensor_id >= 0x06)) {
-        GTP_ERROR("Invalid sensor_id(0x%02X), No Config Sent!", sensor_id);
-        return -1;
+    if (SUCCESS == ret) {
+        if (sensor_id >= 0x06) {
+            GTP_ERROR("Invalid sensor_id(0x%02X), No Config Sent!", sensor_id);
+            return -1;
+        }
     } else {
         GTP_ERROR("Failed to get sensor_id, No config sent!");
         return -1;
