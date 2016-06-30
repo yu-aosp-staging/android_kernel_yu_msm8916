@@ -35,6 +35,7 @@
 #define KEY_GESTURE_SLIDE_E		255
 #define KEY_GESTURE_SLIDE_M		256
 #define KEY_GESTURE_SLIDE_W		257
+#define KEY_GESTURE_DOUBLE_TAP          258
 
 // Driver name
 #define GOODIX_TS_NAME "goodix"
@@ -340,7 +341,7 @@ static void goodix_ts_work_func(struct work_struct *work)
                 GTP_INFO("double click to light up the screen!");
                 doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"double_click");
-                gesture_key = KEY_WAKEUP;
+                gesture_key = KEY_GESTURE_DOUBLE_TAP;
             } else if ((doze_buf[2] == 0xBA) && (support_gesture & TW_SUPPORT_UP_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0xBA) To Light up the screen!");
                 doze_status = DOZE_WAKEUP;
@@ -782,7 +783,7 @@ static s8 gtp_request_input_dev(struct goodix_ts_data *ts){
     }
 
     set_bit(EV_KEY, ts->input_dev->evbit);
-    set_bit(KEY_WAKEUP, ts->input_dev->keybit);
+    set_bit(KEY_GESTURE_DOUBLE_TAP, ts->input_dev->keybit);
     set_bit(KEY_GESTURE_SLIDE_DOWN, ts->input_dev->keybit);
     set_bit(KEY_GESTURE_SLIDE_UP, ts->input_dev->keybit);
     set_bit(KEY_GESTURE_SLIDE_LEFT, ts->input_dev->keybit);
