@@ -62,8 +62,6 @@ static const u16 touch_key_array[] = GTP_KEY_TAB;
 #define GTP_PWR_EN 1
 #define GTP_SLEEP_PWR_EN 0
 
-u8 glove_mode = 0;
-u8 glove_switch = 0;
 atomic_t gt_keypad_enable;
 
 #ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_SIZE
@@ -654,63 +652,12 @@ s32 gtp_init_panel(struct goodix_ts_data *ts) {
     return 0;
 }
 
-static s32 gtp_write_config(struct goodix_ts_data *ts) {
-    s32 ret, i;
-    u8 check_sum, glove_gtp_cfg_len;
-
-    if (glove_mode==1)  {
-        glove_gtp_cfg_len = yl_cfg_glove[tp_index].firmware_size;
-        memset(&config[GTP_ADDR_LENGTH], 0, GTP_CONFIG_MAX_LENGTH);
-        memcpy(&config[GTP_ADDR_LENGTH], yl_cfg_glove[tp_index].firmware, glove_gtp_cfg_len);
-    } else if (glove_mode==0) {
-        glove_gtp_cfg_len = yl_cfg[tp_index].firmware_size;
-        memset(&config[GTP_ADDR_LENGTH], 0, GTP_CONFIG_MAX_LENGTH);
-        memcpy(&config[GTP_ADDR_LENGTH], yl_cfg[tp_index].firmware, glove_gtp_cfg_len);
-    }
-
-    config[RESOLUTION_LOC]     = ts->pdata->screen_x&0xff;
-    config[RESOLUTION_LOC + 1] = (ts->pdata->screen_x>>8)&0xff;
-    config[RESOLUTION_LOC + 2] = ts->pdata->screen_y&0xff;
-    config[RESOLUTION_LOC + 3] = (ts->pdata->screen_y>>8)&0xff;
-
-    if (ts->pdata->irqflag == IRQF_TRIGGER_RISING) {
-        config[TRIGGER_LOC] &= 0xfc;
-    } else if (ts->pdata->irqflag == IRQF_TRIGGER_FALLING) {
-        config[TRIGGER_LOC] &= 0xfc;
-        config[TRIGGER_LOC] |= 0x01;
-    }
-    for (i = GTP_ADDR_LENGTH, check_sum = 0; i < glove_gtp_cfg_len; i++) {
-        check_sum += config[i];
-    }
-    config[glove_gtp_cfg_len] = (~check_sum) + 1;
-
-    ts->abs_x_max = (config[RESOLUTION_LOC + 1] << 8) + config[RESOLUTION_LOC];
-    ts->abs_y_max = (config[RESOLUTION_LOC + 3] << 8) + config[RESOLUTION_LOC + 2];
-    ts->int_trigger_type = (config[TRIGGER_LOC]) & 0x03;
-
-    if ((!ts->abs_x_max)||(!ts->abs_y_max)) {
-        GTP_ERROR("GTP resolution & max_touch_num invalid, use default value!");
-        ts->abs_x_max = ts->pdata->screen_x;
-        ts->abs_y_max = ts->pdata->screen_y;
-    }
-
-    ret = gtp_send_cfg(ts->client);
-    if (ret < 0)
-        GTP_ERROR("Send config error.");
-
-    GTP_DEBUG("X_MAX = %d,Y_MAX = %d,TRIGGER = 0x%02x",
-             ts->abs_x_max,ts->abs_y_max,ts->int_trigger_type);
-
-    msleep(10);
-    return 0;
-}
-
 s32 gtp_read_version(struct i2c_client *client, u16* version) {
     s32 ret;
     u8 buf[8] = {GTP_REG_VERSION >> 8, GTP_REG_VERSION & 0xff};
 
     ret = gtp_i2c_read(client, buf, sizeof(buf));
-    if (ret < 0) {
+    if (ret < 0){
         GTP_ERROR("GTP read version failed");
         return ret;
     }
@@ -756,7 +703,7 @@ s32 gtp_read_fw_cfg_version(void) {
     cfg[0] = GTP_REG_CONFIG_DATA >> 8;
     cfg[1] = GTP_REG_CONFIG_DATA & 0xff;
     ret = gtp_i2c_read(i2c_connect_client, cfg, 3);
-    if (ret < 0) {
+    if ( ret < 0 ) {
         GTP_ERROR("Read config version failed.\n");
         return ret;
     }
@@ -823,7 +770,7 @@ static s8 gtp_request_irq(struct goodix_ts_data *ts) {
     }
 }
 
-static s8 gtp_request_input_dev(struct goodix_ts_data *ts) {
+static s8 gtp_request_input_dev(struct goodix_ts_data *ts){
     s8 ret;
     s8 phys[32];
     u8 index = 0;
@@ -934,7 +881,7 @@ int goodix_calibrate(void) {
    return 0;
 }
 
-int goodix_get_firmware_version(char * version) {
+int goodix_get_firmware_version(char * version ) {
    gtp_read_fw_cfg_version();
 
    if (tp_supported)
@@ -948,130 +895,23 @@ int goodix_reset_touchscreen(void) {
    return 1;
 }
 
-
-u32 yl_get_charger_status(void);
-
 void yl_chg_status_changed(void) {
-   u32 chg_status, ret;
-   int count = 0;
-   u8 write_val;
-
-   u8 i2c_control_buf[3] = {(u8)(GTP_REG_SLEEP >> 8), (u8)GTP_REG_SLEEP, 0x0a};
-   u8 i2c_command_buf[3] = {0x80,0x46};
-
-   chg_status = yl_get_charger_status();
-   pr_err("tw get charger status is: %d\n", chg_status);
-
-   if (glove_switch == MODE_GLOVE) {
-      if (gt9xx_has_resumed == 1) {
-         if (chg_status == 0)
-            write_val = 0x0b;
-         else
-            write_val = 0x0a;
-         i2c_command_buf[2]=write_val;
-         if (i2c_connect_client != NULL)
-            ret = gtp_i2c_write(i2c_connect_client, i2c_command_buf, 3);
-         if (ret < 0)
-            printk("failed to set finger mode flag into 0x8046\n");
-         i2c_control_buf[0] = 0x80;
-         i2c_control_buf[1] = 0x40;
-         for (count = 0; count < 5; count++) {
-            i2c_control_buf[2] = write_val;
-            if (i2c_connect_client != NULL)
-               ret = gtp_i2c_write(i2c_connect_client, i2c_control_buf, 3);
-            if (ret > 0) {
-               GTP_DEBUG("[GTS]:%s write 0x8040 register success ,value = %d.\n", __func__, write_val);
-               break;
-            } else {
-               printk(KERN_ERR "%s: glove mode  write 0x8040 error, count = %d, write_val = %d.\n",
-                                                                  __func__, count, write_val);
-            }
-         }
-      }
-   }
+   GTP_DEBUG("enter %s\n",__FUNCTION__);
 }
-EXPORT_SYMBOL(yl_chg_status_changed);
 
 touch_mode_type goodix_get_mode(void) {
-	return glove_switch;
+   GTP_DEBUG("enter %s\n",__FUNCTION__);
+   return 1;
 }
 
-int goodix_set_mode(touch_mode_type glove) {
-   u8 ret;
-   struct goodix_ts_data *ts = i2c_get_clientdata(i2c_connect_client);;
-
-   if (i2c_connect_client == NULL)
-      return -1;
- 
-   glove_switch=glove;
-
-   if (ts->use_irq)
-      gtp_irq_disable(ts);
-   else
-      hrtimer_cancel(&ts->timer);
-
-#ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_CFG
-   if (glove_switch!=MODE_GLOVE && glove_switch!=MODE_WINDOW) {
-#else
-   if (glove_switch!=MODE_GLOVE) {
-#endif
-      printk(KERN_ERR"[GTP]:switch to normal mode.\n");
-      ts->gtp_cfg_len = yl_cfg[tp_index].firmware_size;
-      memset(&config[GTP_ADDR_LENGTH], 0, GTP_CONFIG_MAX_LENGTH);
-      memcpy(&config[GTP_ADDR_LENGTH], yl_cfg[tp_index].firmware, ts->gtp_cfg_len);
-   }
-#ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_CFG
-   else if (glove_switch == MODE_WINDOW) {
-	    printk(KERN_ERR"[GTP]:switch to window mode.\n");
-	    ts->gtp_cfg_len = yl_cfg_window[tp_index].firmware_size;
-	    memset(&config[GTP_ADDR_LENGTH], 0, GTP_CONFIG_MAX_LENGTH);
-	    memcpy(&config[GTP_ADDR_LENGTH], yl_cfg_window[tp_index].firmware, ts->gtp_cfg_len);
-
-	}
-#endif
-   else	{
-      printk(KERN_ERR"[GTP]:switch to glove mode.\n");
-      ts->gtp_cfg_len = yl_cfg_glove[tp_index].firmware_size;
-      memset(&config[GTP_ADDR_LENGTH], 0, GTP_CONFIG_MAX_LENGTH);
-      memcpy(&config[GTP_ADDR_LENGTH], yl_cfg_glove[tp_index].firmware, ts->gtp_cfg_len);
-   }
-   gtp_reset_guitar(ts->client, 20);
-   ret = gtp_send_cfg(ts->client);
-   if (ret >= 0) {
-      msleep(400);
-      GTP_INFO("send config successed!");
-   }
-
-   if (glove_switch == MODE_GLOVE)
-      yl_chg_status_changed();
-
-   if (!ts->gtp_is_suspend) {
-      if (ts->use_irq)
-         gtp_irq_enable(ts);
-      else
-         hrtimer_start(&ts->timer, ktime_set(1, 0), HRTIMER_MODE_REL);
-   }
-   printk(KERN_ERR"%s: mode  = %d\n", __func__,glove_switch);
+int goodix_set_mode(touch_mode_type work_mode) {
+   GTP_DEBUG("enter %s\n",__FUNCTION__);
    return 1;
 }
 
 void window_mode(bool on) {
-   if (on) {
-      int tmp = glove_switch;
-      goodix_set_mode(MODE_WINDOW);
-      glove_switch = tmp;
-   } else {
-      goodix_set_mode(glove_switch);
-   }
+    GTP_DEBUG("Not support window mode.\n");
 }
-int glove_windows_switch(int in_hall) {
-   if (in_hall)
-      window_mode(true);
-   else
-      window_mode(false);
-   return 0;
-}
-EXPORT_SYMBOL_GPL(glove_windows_switch);
 
 touch_oreitation_type goodix_get_oreitation(void) {
    GTP_DEBUG("enter %s\n",__FUNCTION__);
@@ -1090,7 +930,7 @@ int goodix_read_regs(char * buf) {
     cfg[0] = GTP_REG_CONFIG_DATA >> 8;
     cfg[1] = GTP_REG_CONFIG_DATA & 0xff;
     ret = gtp_i2c_read(i2c_connect_client, cfg, GTP_CONFIG_MAX_LENGTH + GTP_ADDR_LENGTH);
-    if (ret < 0) {
+    if ( ret < 0 ) {
         GTP_ERROR("Read config version failed.\n");
         return ret;
     }
@@ -1254,7 +1094,7 @@ int goodix_gesture_ctrl(const char*  gesture_buf) {
         gtp_reset_guitar(ts->client, 20);
         if (support_gesture & TW_SUPPORT_GESTURE_IN_ALL) {
             mutex_lock(&ts->doze_mutex);
-            if (doze_status != DOZE_DISABLED)
+            if ( doze_status != DOZE_DISABLED )
                 ret = gtp_enter_doze(ts);
             mutex_unlock(&ts->doze_mutex);
             if (ret < 0)
@@ -1489,7 +1329,7 @@ static int goodix_ts_gpio_init(bool on) {
 
     if (gpio_is_valid(gtpdata->gpio_irq)) {
         ret = gpio_request(gtpdata->gpio_irq, "goodix-ts-irq");
-        if (ret) {
+        if (ret){
                 pr_err("TOUCH:%s: Failed to request GPIO %d\n",__func__, gtpdata->gpio_irq);
                 gpio_free(gtpdata->gpio_irq);
                 return ret;
@@ -1571,7 +1411,7 @@ static int goodix_ts_reset(int ms) {
 
 
 static int goodix_ts_sleep(void) {
-    if (GTP_PWR_EN && GTP_SLEEP_PWR_EN)
+    if ( GTP_PWR_EN && GTP_SLEEP_PWR_EN)
         goodix_ts_power(0);
     mdelay(5);
     return 0;
@@ -1633,7 +1473,7 @@ static int goodix_ts_parse_dt(struct device *dev, struct tw_platform_data *pdata
         }
     } else {
         pdata->screen_x = panel_xres;
-        pdata->screen_y = ((panel_xres * 16) / 9);
+        pdata->screen_y = ( (panel_xres * 16 ) / 9);
     }
 
     printk("[gt]:screen x,y = %d, %d\n", pdata->screen_x, pdata->screen_y);
@@ -1656,122 +1496,6 @@ static int goodix_ts_parse_dt(struct device *dev, struct tw_platform_data *pdata
     return 0;
 }
 #endif
-
-static ssize_t glove_show(struct device *dev,struct device_attribute *attr, char *buf) {
-    u8 ret;
-    u8 i2c_control_buf[3] = {(u8)(GTP_REG_SLEEP >> 8), (u8)GTP_REG_SLEEP};
-    
-    ret = gtp_i2c_read(i2c_connect_client, i2c_control_buf, 3);
-    if (ret < 0) {
-        GTP_ERROR("Read register 0x8040 failed.\n");
-        return ret;
-    } else {
-        printk("[gt]:register 0x8040 value =%d.\n",i2c_control_buf[2]);
-    }
-    ret = sprintf(buf, "%d%d",glove_switch,i2c_control_buf[2]);
-    return ret;
-}
-
-static ssize_t glove_store(struct device *dev,struct device_attribute *attr,const char *buf, size_t count) {
-    u8 ret;
-    u8 i2c_control_buf[3] = {(u8)(GTP_REG_SLEEP >> 8), (u8)GTP_REG_SLEEP, 0x0A};
-    struct goodix_ts_data *ts = ts = i2c_get_clientdata(i2c_connect_client);;
-
-    if (buf == NULL) {
-		GTP_INFO("[FTS]: buf is NULL!\n");
-		return -ENOMEM;
-    }
-
-    glove_switch = (unsigned char)simple_strtoul(buf, NULL, 10);
-    GTP_INFO("input arguments glove_switch=%d",glove_switch);
-    switch(glove_switch) {
-        // Not charging, open glove mode
-        case 0:
-            glove_mode=1;
-            gtp_write_config(ts);
-            GTP_INFO("not charging,open glove mode,glove config write over!");
-            break;
-        // Not charging, exit glove mode
-        case 1:
-            glove_mode=0;
-            gtp_write_config(ts);
-            GTP_INFO("not charging,exit glove mode,finger config write over!");
-            break;
-        // Charging, open glove mode first , then enter finger mode, and close glove mode
-        case 2:
-            i2c_control_buf[2] = 0x0A;
-            i2c_control_buf[0] = 0x80;
-            i2c_control_buf[1] = 0x46;
-            ret = gtp_i2c_write(ts->client, i2c_control_buf, 3);
-            if (ret < 0)
-                GTP_INFO("failed to set finger mode flag into 0x8046\n");
-            else
-                GTP_INFO("succeed to set finger mode flag into 0x8046\n");
-            i2c_control_buf[0] = 0x80;
-            i2c_control_buf[1] = 0x40;
-            ret = gtp_i2c_write(ts->client, i2c_control_buf, 3);
-            if (ret > 0)
-                GTP_INFO("charger in ,now glove had opens.GTP enter finger mode!");
-            else
-                GTP_INFO("charger in ,now glove had open,write register 0x8040 0x0A err!");
-            break;
-        // End charging, now glove mode had open
-        case 3:
-            i2c_control_buf[2] = 0x0B;
-            i2c_control_buf[0] = 0x80;
-            i2c_control_buf[1] = 0x46;
-            ret = gtp_i2c_write(ts->client, i2c_control_buf, 3);
-            if (ret < 0)
-                GTP_INFO("failed to set automatic switching mode flag into 0x8046\n");
-            else
-                GTP_INFO(" succeed to set automatic switching mode into 0x8046\n");
-            i2c_control_buf[0] = 0x80;
-            i2c_control_buf[1] = 0x40;
-            ret = gtp_i2c_write(ts->client, i2c_control_buf, 3);
-            if (ret > 0)
-                GTP_INFO("end charging,now glove mode had open,GTP enter glove mode!");
-            else
-                GTP_INFO("end charging,now glove mode had open. write register 0x0B err!");
-            break;
-        case 4:
-                GTP_INFO("4 charging , glove was closed,nothing to do!");
-                break;
-        case 5:
-                GTP_INFO("5 charging exit ,glove was closed,nothing to do!");
-                break;
-        // Charging first, open glove, and then enter finger mode, and close glove mode
-        case 6:
-                glove_mode=1;
-                i2c_control_buf[2] = 0x0A;
-                gtp_write_config(ts);
-                GTP_INFO("charging first ,glove open second,glove config write over!");
-                i2c_control_buf[0] = 0x80;
-                i2c_control_buf[1] = 0x46;
-                ret = gtp_i2c_write(ts->client, i2c_control_buf, 3);
-                if (ret < 0)
-                    GTP_INFO("failed to set finger mode flag into 0x8046\n");
-                else
-                    GTP_INFO(" succeed to set finger mode flag into 0x8046\n");
-                i2c_control_buf[0] = 0x80;
-                i2c_control_buf[1] = 0x40;
-                ret = gtp_i2c_write(ts->client, i2c_control_buf, 3);
-                if (ret > 0)
-                    GTP_INFO("charging first ,glove open second,glovewirte 0x8040 0A,GTP enter finger mode!");
-                else
-                    GTP_INFO("charging first ,glove open second,glove, write register 0A err!");
-                break;
-        // Glove mode exit, now is charging
-        case 7:
-            glove_mode=0;
-            gtp_write_config(ts);
-            GTP_INFO("glove mode exit,now is charging,send finger_config.");
-            break;
-        default:
-            GTP_INFO("default nothing to do!");
-            break;
-    }
-    return count;
-}
 
 static ssize_t gesture_support_show(struct device *dev,
 				 struct device_attribute *attr, char *buf) {
@@ -1836,7 +1560,6 @@ static ssize_t keypad_enable_store(struct device *dev,
 }
 static DEVICE_ATTR(gesture_support, S_IRUGO|S_IWUSR, gesture_support_show, NULL);
 
-static DEVICE_ATTR(glove_switch, S_IRUGO|S_IWUSR, glove_show, glove_store);
 
 #ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_SIZE
 static DEVICE_ATTR(windows_switch, S_IRUGO|S_IWUSR, windows_show, windows_store);
@@ -1845,7 +1568,6 @@ static DEVICE_ATTR(windows_switch, S_IRUGO|S_IWUSR, windows_show, windows_store)
 static DEVICE_ATTR(keypad_enable, S_IRUGO|S_IWUSR, keypad_enable_show, keypad_enable_store);
 
 static struct attribute *goodix_attributes[] = {
-    &dev_attr_glove_switch.attr,
 #ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_SIZE
     &dev_attr_windows_switch.attr,
 #endif
@@ -2001,7 +1723,6 @@ static int  goodix_ts_probe(struct i2c_client *client, const struct i2c_device_i
     touchscreen_set_ops(&goodix_ops);
 
    gt9xx_has_resumed = 1;
-   yl_chg_status_changed();
 
    gtp_read_report_rate(client,&rate);
    ret= sysfs_create_group(&client->dev.kobj, &goodix_attribute_group);
@@ -2113,9 +1834,6 @@ static int goodix_ts_enable(struct input_dev *in_dev) {
     ret = gtp_wakeup_sleep(ts);
     if (ret < 0)
         GTP_ERROR("GTP later resume failed.");
-
-    if (glove_switch == MODE_GLOVE)
-        yl_chg_status_changed();
 
     if (ts->use_irq)
         gtp_irq_enable(ts);
