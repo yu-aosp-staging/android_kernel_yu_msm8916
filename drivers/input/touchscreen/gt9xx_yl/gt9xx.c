@@ -297,6 +297,7 @@ static void gtp_touch_down(struct goodix_ts_data* ts,s32 id,s32 x,s32 y,s32 w) {
     else
 #endif
     /* Report press event */
+    input_report_key(ts->input_dev, BTN_TOUCH, 1);
     input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
     input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, y);
     input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, w);
@@ -448,6 +449,7 @@ static void goodix_ts_work_func(struct work_struct *work)
             gtp_touch_down(ts, id, input_x, input_y, input_w);
         }
     } else if (pre_touch) {
+            input_report_key(ts->input_dev, BTN_TOUCH, 0);
             input_mt_sync(ts->input_dev);
     }
     pre_touch = touch_num;
@@ -832,6 +834,7 @@ static s8 gtp_request_input_dev(struct goodix_ts_data *ts) {
         return -ENOMEM;
     }
 
+    ts->input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
     atomic_set(&gt_keypad_enable, 1);
     for (index = 0; index < GTP_MAX_KEY_NUM; index++) {
         input_set_capability(ts->input_dev,EV_KEY,touch_key_array[index]);
