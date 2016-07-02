@@ -90,6 +90,8 @@ extern s32 init_wr_node(struct i2c_client*);
 extern void uninit_wr_node(void);
 extern u8 gup_init_update_proc(struct goodix_ts_data *);
 
+void tw_hall_wakeup(int in_hall);
+
 #if GTP_ESD_PROTECT
 static struct delayed_work gtp_esd_check_work;
 static struct workqueue_struct * gtp_esd_check_workqueue = NULL;
@@ -214,6 +216,26 @@ s32 gtp_i2c_write(struct i2c_client *client,u8 *buf,s32 len) {
     }
     return ret;
 }
+void tw_hall_wakeup(int in_hall) {
+    struct goodix_ts_data *ts = i2c_get_clientdata(i2c_connect_client);
+    if (in_hall) {
+        if (ts->gtp_is_suspend) {
+            // Report powerkey event for PowerManagerService to wakeup or sleep system
+            input_report_key(ts->input_dev, KEY_POWER, 1);
+            input_sync(ts->input_dev);
+            input_report_key(ts->input_dev, KEY_POWER, 0);
+            input_sync(ts->input_dev);
+        }
+    } else {
+        if (0 == ts->gtp_is_suspend) {
+            input_report_key(ts->input_dev, KEY_POWER, 1);
+            input_sync(ts->input_dev);
+            input_report_key(ts->input_dev, KEY_POWER, 0);
+            input_sync(ts->input_dev);
+        }
+    }
+}
+EXPORT_SYMBOL_GPL(tw_hall_wakeup);
 
 void gtp_enable_irq_wake(struct goodix_ts_data *ts, u8 enable) {
 	static u8 irq_wake_status = 0;
