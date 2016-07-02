@@ -33,16 +33,16 @@
 #include "gt9xx_config.h"
 
 /* Gesture keycodes */
-#define KEY_GESTURE_SLIDE_DOWN		249
-#define KEY_GESTURE_SLIDE_UP            250
-#define KEY_GESTURE_SLIDE_LEFT		251
-#define KEY_GESTURE_SLIDE_RIGHT	        252
-#define KEY_GESTURE_SLIDE_C		253
-#define KEY_GESTURE_SLIDE_O		254
-#define KEY_GESTURE_SLIDE_E		255
-#define KEY_GESTURE_SLIDE_M		256
-#define KEY_GESTURE_SLIDE_W		257
-#define KEY_GESTURE_DOUBLE_TAP          258
+#define KEY_GESTURE_SLIDE_DOWN		181
+#define KEY_GESTURE_SLIDE_UP            182
+#define KEY_GESTURE_SLIDE_LEFT		183
+#define KEY_GESTURE_SLIDE_RIGHT	        184
+#define KEY_GESTURE_SLIDE_C		185
+#define KEY_GESTURE_SLIDE_O		186
+#define KEY_GESTURE_SLIDE_E		187
+#define KEY_GESTURE_SLIDE_M		188
+#define KEY_GESTURE_SLIDE_W		189
+#define KEY_GESTURE_DOUBLE_TAP          190
 
 // Driver name
 #define GOODIX_TS_NAME "goodix"
