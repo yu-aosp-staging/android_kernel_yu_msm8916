@@ -60,6 +60,11 @@ static unsigned char CTP_CFG_GROUP1[]=
 {
     #include "coolpad_8675_00_V46_20141111_finger.cfg"
 };
+static unsigned char CTP_CFG_GROUP1_glove[]=  
+{
+    #include "coolpad_8675_00_V46_20141111_glove.cfg"
+};
+
 #ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_CFG
 static unsigned char CTP_CFG_GROUP1_window[]=  
 {
@@ -70,6 +75,11 @@ static unsigned char CTP_CFG_GROUP2[]=
 {
     #include "coolpad_8675_02_V46_20141111_finger.cfg"
 };
+static unsigned char CTP_CFG_GROUP2_glove[]=  
+{
+    #include "coolpad_8675_02_V46_20141111_glove.cfg"
+};
+
 #ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_CFG
 static unsigned char CTP_CFG_GROUP2_window[]=  
 {
@@ -80,6 +90,11 @@ static unsigned char CTP_CFG_GROUP3[]=
 {
     #include "coolpad_8675_01_V46_20141111_finger.cfg"
 };
+static unsigned char CTP_CFG_GROUP3_glove[]=  
+{
+    #include "coolpad_8675_01_V46_20141111_glove.cfg"
+};
+
 #ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_CFG
 static unsigned char CTP_CFG_GROUP3_window[]=  
 {
@@ -93,6 +108,12 @@ struct touch_panel_info yl_cfg[] = {
   {0x02, "Ofilm", CTP_CFG_GROUP2, sizeof(CTP_CFG_GROUP2)},
   {0x01, "Each", CTP_CFG_GROUP3, sizeof(CTP_CFG_GROUP3)},
 };
+struct touch_panel_info yl_cfg_glove[] = {
+  {0x00, "Boen", CTP_CFG_GROUP1_glove, sizeof(CTP_CFG_GROUP1_glove)},
+  {0x02, "Ofilm", CTP_CFG_GROUP2_glove, sizeof(CTP_CFG_GROUP2_glove)},
+  {0x01, "Each", CTP_CFG_GROUP3_glove, sizeof(CTP_CFG_GROUP3_glove)},
+};
+
 
 #ifdef CONFIG_TOUCHSCREEN_GT9XX_YL_COVER_WINDOW_CFG
 struct touch_panel_info yl_cfg_window[] = {
@@ -107,19 +128,40 @@ static unsigned char CTP_CFG_GROUP1[]=
 {
 	#include "coolapd_7625_00_V47_20140730_finger.cfg"
 };
+static unsigned char CTP_CFG_GROUP1_glove[]=  
+{
+	#include "coolapd_7625_00_V47_20140730_glove.cfg"
+};
+
 static unsigned char CTP_CFG_GROUP2[]=
 {
    #include "coolapd_7625_01_V47_20140730_finger.cfg"
 };
+static unsigned char CTP_CFG_GROUP2_glove[]=
+{
+   #include "coolapd_7625_01_V47_20140730_glove.cfg"
+};
+
 static unsigned char CTP_CFG_GROUP3[]=
 {
     #include "coolapd_7625_02_V47_20140730_finger.cfg"
 };
+static unsigned char CTP_CFG_GROUP3_glove[]=
+{
+    #include "coolapd_7625_02_V47_20140730_glove.cfg"  
+};
+
 struct touch_panel_info yl_cfg[] = {
   {0x00, "boen", CTP_CFG_GROUP1, sizeof(CTP_CFG_GROUP1)},
   {0x01, "junda", CTP_CFG_GROUP2, sizeof(CTP_CFG_GROUP2)},
   {0x02, "ofilm", CTP_CFG_GROUP3, sizeof(CTP_CFG_GROUP3)},
 };
+struct touch_panel_info yl_cfg_glove[] = {
+  {0x00, "boen", CTP_CFG_GROUP1_glove, sizeof(CTP_CFG_GROUP1_glove)},
+  {0x01, "junda", CTP_CFG_GROUP2_glove, sizeof(CTP_CFG_GROUP2_glove)},
+  {0x02, "ofilm", CTP_CFG_GROUP3_glove, sizeof(CTP_CFG_GROUP3_glove)},  
+};
+
 #endif
 
 #endif
