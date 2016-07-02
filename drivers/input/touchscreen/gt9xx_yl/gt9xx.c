@@ -17,11 +17,18 @@
 
 #include <linux/irq.h>
 #include <linux/input/touchscreen_yl.h>
+
+#ifdef CONFIG_OF
 #include <linux/regulator/consumer.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
+#endif
+
+#ifdef CONFIG_FB
 #include <linux/notifier.h>
 #include <linux/fb.h>
+#endif
+
 #include "gt9xx.h"
 #include "gt9xx_config.h"
 
@@ -77,6 +84,7 @@ struct cover_window_info {
 struct cover_window_info gt9xx_cover_window;
 #endif
 
+static s8 gtp_i2c_test(struct i2c_client *client);
 void gtp_reset_guitar(struct i2c_client *client, s32 ms);
 
 #if defined(CONFIG_FB)
@@ -331,15 +339,23 @@ static void gtp_touch_down(struct goodix_ts_data* ts,s32 id,s32 x,s32 y,s32 w) {
 
 static void goodix_ts_work_func(struct work_struct *work)
 {
-    s32 key_value, input_x, input_y, input_w, id, i, ret = 0;
+    u8 end_cmd[3] = {GTP_READ_COOR_ADDR >> 8, GTP_READ_COOR_ADDR & 0xFF, 0};
+    u8 point_data[2 + 1 + 8 * GTP_MAX_TOUCH + 1]={GTP_READ_COOR_ADDR >> 8, GTP_READ_COOR_ADDR & 0xFF};
+    u8 touch_num = 0;
+    u8 finger = 0;
     static u16 pre_touch = 0;
     static u8 pre_key = 0;
-    struct goodix_ts_data *ts = NULL;
-    u8  end_cmd[3] = {GTP_READ_COOR_ADDR >> 8, GTP_READ_COOR_ADDR & 0xFF, 0};
-    u8  point_data[2 + 1 + 8 * GTP_MAX_TOUCH + 1]={GTP_READ_COOR_ADDR >> 8, GTP_READ_COOR_ADDR & 0xFF};
-    u8 doze_buf[3] = {0x81, 0x4B};
-    u8 touch_num, finger = 0;
+    u8 key_value = 0;
     u8* coor_data = NULL;
+    s32 input_x = 0;
+    s32 input_y = 0;
+    s32 input_w = 0;
+    s32 id = 0;
+    s32 i = 0;
+    s32 ret = -1;
+    struct goodix_ts_data *ts = NULL;
+
+    u8 doze_buf[3] = {0x81, 0x4B};
     uint16_t gesture_key = 0;
 
     ts = container_of(work, struct goodix_ts_data, work);
@@ -530,9 +546,9 @@ static s8 gtp_enter_doze(struct goodix_ts_data *ts) {
         i2c_control_buf[1] = 0x40;
         ret = gtp_i2c_write(ts->client, i2c_control_buf, 3);
         if (ret > 0) {
-            mutex_lock(&ts->doze_mutex);
+            //mutex_lock(&ts->doze_mutex);
             doze_status = DOZE_ENABLED;
-            mutex_unlock(&ts->doze_mutex);
+            //mutex_unlock(&ts->doze_mutex);
 	    GTP_INFO("[GTP]:Enter in doze mode successed!");
             gtp_enable_irq_wake(ts, 1);
             gtp_irq_enable(ts);
@@ -586,12 +602,13 @@ s32 gtp_init_panel(struct goodix_ts_data *ts) {
     u8 opr_buf[16];
 
     ret = gtp_i2c_read_dbl_check(ts->client, 0x41E4, opr_buf, 1);
-    if (SUCCESS == ret && (opr_buf[0] != 0xBE)) {
-        ts->fw_error = 1;
-        printk("Firmware error, no config sent!");
-        return -1;
+    if (SUCCESS == ret) {
+        if (opr_buf[0] != 0xBE) {
+            ts->fw_error = 1;
+            printk("Firmware error, no config sent!");
+            return -1;
+        }
     }
-
     ret = gtp_i2c_read_dbl_check(ts->client, GTP_REG_SENSOR_ID, &sensor_id, 1);
     if (SUCCESS == ret) {
         if (sensor_id >= 0x06) {
@@ -625,9 +642,11 @@ s32 gtp_init_panel(struct goodix_ts_data *ts) {
     memcpy(&config[GTP_ADDR_LENGTH], yl_cfg[tp_index].firmware, ts->gtp_cfg_len);
 
     ret = gtp_i2c_read_dbl_check(ts->client, GTP_REG_CONFIG_DATA, &opr_buf[0], 1);
-    if (ret == SUCCESS && (opr_buf[0] < 90) && (opr_buf[0] != config[GTP_ADDR_LENGTH])) {
+    if (ret == SUCCESS) {
+       if ( (opr_buf[0] < 90) && (opr_buf[0] != config[GTP_ADDR_LENGTH]) ) {
            cfg_version_bak = config[GTP_ADDR_LENGTH];
            config[GTP_ADDR_LENGTH] = 0x00;
+        }
     }
 
     // Set max sizes
@@ -643,8 +662,9 @@ s32 gtp_init_panel(struct goodix_ts_data *ts) {
         config[TRIGGER_LOC] |= 0x01;
     }
 
-    for (i = GTP_ADDR_LENGTH, check_sum = 0; i < ts->gtp_cfg_len; i++)
+    for (i = GTP_ADDR_LENGTH, check_sum = 0; i < ts->gtp_cfg_len; i++) {
         check_sum += config[i];
+    }
     config[ts->gtp_cfg_len] = (~check_sum) + 1;
 
     ts->abs_x_max = (config[RESOLUTION_LOC + 1] << 8) + config[RESOLUTION_LOC];
@@ -678,7 +698,7 @@ s32 gtp_init_panel(struct goodix_ts_data *ts) {
 
 static s32 gtp_write_config(struct goodix_ts_data *ts) {
     s32 ret, i;
-    u8 check_sum, glove_gtp_cfg_len;
+    u8 check_sum, glove_gtp_cfg_len = 0;
 
     if (glove_mode==1)  {
         glove_gtp_cfg_len = yl_cfg_glove[tp_index].firmware_size;
@@ -786,6 +806,21 @@ s32 gtp_read_fw_cfg_version(void) {
     return 0;
 }
 
+static s8 gtp_i2c_test(struct i2c_client *client) {
+    u8 test[3] = {GTP_REG_CONFIG_DATA >> 8, GTP_REG_CONFIG_DATA & 0xff};
+    u8 retry = 0;
+    s8 ret = -1;
+
+    while (retry++ < 5) {
+        ret = gtp_i2c_read(client, test, 3);
+        if (ret > 0)
+            return ret;
+        GTP_ERROR("GTP i2c test failed time %d.",retry);
+        msleep(10);
+    }
+    return ret;
+}
+
 static int goodix_ts_suspend(struct device *dev) {
     struct goodix_ts_data *ts = i2c_get_clientdata(i2c_connect_client);
     return goodix_ts_disable(ts->input_dev);
@@ -834,7 +869,7 @@ static s8 gtp_request_irq(struct goodix_ts_data *ts) {
                        ts);
     if (ret) {
         GTP_ERROR("Request IRQ failed!ERRNO:%d.", ret);
-        hrtimer_init(&ts->timer, CLOCK_BOOTTIME, HRTIMER_MODE_REL);
+        hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
         ts->timer.function = goodix_ts_timer_handler;
         hrtimer_start(&ts->timer, ktime_set(1, 0), HRTIMER_MODE_REL);
         return -1;
@@ -925,17 +960,18 @@ int goodix_firmware_need_update(void) {
         GTP_ERROR("[update_proc]get ic message fail.");
         return FAIL;
     }
-    return gup_check_update_file(i2c_connect_client, &fw_head, 0);
+    ret = gup_check_update_file(i2c_connect_client, &fw_head, 0);
+    return ret;
  }
 
 
 int goodix_firmware_do_update(void) {
     int ret;
-    struct goodix_ts_data *ts = i2c_get_clientdata(i2c_connect_client);
 
     GTP_DEBUG("enter %s\n",__FUNCTION__);
     ret = goodix_firmware_need_update();
     if (ret) {
+        struct goodix_ts_data *ts = i2c_get_clientdata(i2c_connect_client);
         if (0 == gup_init_update_proc(ts)) {
             return -1;
         } else {
@@ -1019,13 +1055,15 @@ touch_mode_type goodix_get_mode(void) {
 }
 
 int goodix_set_mode(touch_mode_type glove) {
-   u8 ret;
-   struct goodix_ts_data *ts = i2c_get_clientdata(i2c_connect_client);;
+   u8 ret = 0;
+   struct goodix_ts_data *ts;
 
    if (i2c_connect_client == NULL)
       return -1;
  
-   glove_switch=glove;
+   ts = i2c_get_clientdata(i2c_connect_client);
+
+   glove_switch = glove;
 
    if (ts->use_irq)
       gtp_irq_disable(ts);
@@ -1289,7 +1327,8 @@ int goodix_gesture_ctrl(const char*  gesture_buf) {
             else
                 hrtimer_cancel(&ts->timer);
 
-            if (gtp_enter_sleep(ts) < 0)
+            ret = gtp_enter_sleep(ts);
+            if (ret < 0)
                 printk("%s: gtp enter sleep failed, ret=%d\n", __func__, ret);
             else
                 printk("%s: gtp enter sleep success\n", __func__);
@@ -1697,7 +1736,7 @@ static ssize_t glove_show(struct device *dev,struct device_attribute *attr, char
 static ssize_t glove_store(struct device *dev,struct device_attribute *attr,const char *buf, size_t count) {
     u8 ret;
     u8 i2c_control_buf[3] = {(u8)(GTP_REG_SLEEP >> 8), (u8)GTP_REG_SLEEP, 0x0A};
-    struct goodix_ts_data *ts = ts = i2c_get_clientdata(i2c_connect_client);;
+    struct goodix_ts_data *ts = i2c_get_clientdata(i2c_connect_client);;
 
     if (buf == NULL) {
 		GTP_INFO("[FTS]: buf is NULL!\n");
@@ -1984,6 +2023,13 @@ static int  goodix_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	}
     spin_lock_init(&ts->irq_lock);
     INIT_WORK(&ts->work, goodix_ts_work_func);
+
+    ret = gtp_i2c_test(client);
+    if (ret < 0) {
+        GTP_ERROR("I2C communication ERROR!");
+        goto exit_i2c_test_failed;
+    }
+
 #if GTP_ESD_PROTECT
     gtp_esd_switch(client, SWITCH_ON);
 #endif
@@ -2037,6 +2083,7 @@ static int  goodix_ts_probe(struct i2c_client *client, const struct i2c_device_i
    return 0;
 
 exit_init_panel_failed:
+exit_i2c_test_failed:
 exit_reset_failed:
 exit_power_failed:
    if (ts->pdata->release)
