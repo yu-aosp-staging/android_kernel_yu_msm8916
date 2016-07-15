@@ -114,7 +114,7 @@ static bool mhl_det_in_progress;
 static struct regulator *hsusb_3p3;
 static struct regulator *hsusb_1p8;
 static struct regulator *hsusb_vdd;
-#if !defined(CONFIG_MACH_JALEBI) && !defined(CONFIG_YL_BQ24157_CHARGER) && !defined(CONFIG_YL_FAN5405_CHARGER)
+#if !defined(CONFIG_MACH_JALEBI) || !defined(CONFIG_YL_BQ24157_CHARGER) && !defined(CONFIG_YL_FAN5405_CHARGER)
 static struct regulator *vbus_otg;
 #endif
 static struct regulator *mhl_usb_hs_switch;
