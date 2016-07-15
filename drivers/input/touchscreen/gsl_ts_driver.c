@@ -121,9 +121,6 @@ static void gsl_sw_init(struct i2c_client *client);
 static int fb_notifier_callback(struct notifier_block *self,unsigned long event, void *data);
 #endif
 
-#define NUM_GESTURES KEY_F4
-static DECLARE_BITMAP(gesture_bmp, NUM_GESTURES);
-
 /* Gesture keycodes */
 #define KEY_GESTURE_SLIDE_C		181
 #define KEY_GESTURE_SLIDE_E		182
@@ -138,6 +135,9 @@ static DECLARE_BITMAP(gesture_bmp, NUM_GESTURES);
 #define KEY_GESTURE_SLIDE_UP		191
 #define KEY_GESTURE_SLIDE_LEFT		192
 #define KEY_GESTURE_DOUBLE_TAP		193
+
+#define NUM_GESTURES KEY_GESTURE_DOUBLE_TAP
+static DECLARE_BITMAP(gesture_bmp, NUM_GESTURES);
 
 /*define golbal variable*/
 static struct gsl_ts_data *ddata = NULL;
