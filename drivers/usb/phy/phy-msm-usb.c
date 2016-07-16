@@ -119,9 +119,11 @@ static bool mhl_det_in_progress;
 static struct regulator *hsusb_3p3;
 static struct regulator *hsusb_1p8;
 static struct regulator *hsusb_vdd;
-#if !defined(CONFIG_MACH_JALEBI) || !defined(CONFIG_YL_BQ24157_CHARGER) && !defined(CONFIG_YL_FAN5405_CHARGER)
+
+#if !defined(CONFIG_YL_BQ24157_CHARGER) && !defined(CONFIG_YL_FAN5405_CHARGER)
 static struct regulator *vbus_otg;
 #endif
+
 static struct regulator *mhl_usb_hs_switch;
 static struct power_supply *psy;
 
@@ -2206,13 +2208,6 @@ static void msm_hsusb_vbus_power(struct msm_otg *motg, bool on)
 		return;
 	}
 
-#if !defined(CONFIG_MACH_JALEBI) && !defined(CONFIG_YL_BQ24157_CHARGER) && !defined(CONFIG_YL_FAN5405_CHARGER)
-	if (!vbus_otg) {
-		pr_err("vbus_otg is NULL.");
-		return;
-	}
-#endif
-
 	/*
 	 * if entering host mode tell the charger to not draw any current
 	 * from usb before turning on the boost.
@@ -2273,19 +2268,6 @@ static int msm_otg_set_host(struct usb_otg *otg, struct usb_bus *host)
 		dev_info(otg->phy->dev, "Host mode is not supported\n");
 		return -ENODEV;
 	}
-
-#if !defined(CONFIG_MACH_JALEBI) && !defined(CONFIG_YL_BQ24157_CHARGER) && !defined(CONFIG_YL_FAN5405_CHARGER)
-	if (!motg->pdata->vbus_power && host) {
-		vbus_otg = devm_regulator_get(motg->phy.dev, "vbus_otg");
-		if (IS_ERR(vbus_otg)) {
-			msm_otg_dbg_log_event(&motg->phy,
-					"UNABLE TO GET VBUS_OTG",
-					otg->phy->state, 0);
-			pr_err("Unable to get vbus_otg\n");
-			return PTR_ERR(vbus_otg);
-		}
-	}
-#endif
 
 	if (!host) {
 		if (otg->phy->state == OTG_STATE_A_HOST) {
