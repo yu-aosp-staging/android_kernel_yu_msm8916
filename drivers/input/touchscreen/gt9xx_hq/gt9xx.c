@@ -143,6 +143,14 @@ static int goodix_ts_pinctrl_init(struct goodix_ts_data *ts);
 static int goodix_ts_pinctrl_select(struct goodix_ts_data *ts,bool on);
 
 #if GTP_GESTURE_WAKEUP
+
+/* Gesture keycodes */
+#define KEY_GESTURE_SLIDE_DOWN		181
+#define KEY_GESTURE_SLIDE_UP            182
+#define KEY_GESTURE_SLIDE_LEFT		183
+#define KEY_GESTURE_SLIDE_RIGHT	        184
+#define KEY_GESTURE_DOUBLE_TAP          190
+
 static ssize_t gt9xx_gesture_read_proc(struct file *, char __user *, size_t, loff_t *);
 static ssize_t gt9xx_gesture_write_proc(struct file *, const char __user *, size_t, loff_t *);
 static struct proc_dir_entry *gt9xx_gesture_proc = NULL;
@@ -215,6 +223,7 @@ typedef enum
 }DOZE_T;
 static DOZE_T doze_status = DOZE_DISABLED;
 static s8 gtp_enter_doze(struct goodix_ts_data *ts);
+static uint16_t gesture_key = 0;
 static void report_gesture(struct goodix_ts_data *ts );
 #endif
 
@@ -665,6 +674,7 @@ static void goodix_ts_work_func(struct work_struct *work)
 	{
 		ret = gtp_i2c_read(i2c_connect_client, doze_buf, 3);
 		GTP_DEBUG("0x814B = 0x%02X", doze_buf[2]);
+/*
 		if (ret > 0)
 		{
 			if ((doze_buf[2] == 'a') || (doze_buf[2] == 'b') || (doze_buf[2] == 'c') ||
@@ -672,7 +682,7 @@ static void goodix_ts_work_func(struct work_struct *work)
 					(doze_buf[2] == 'h') || (doze_buf[2] == 'm') || (doze_buf[2] == 'o') ||
 					(doze_buf[2] == 'q') || (doze_buf[2] == 's') || (doze_buf[2] == 'v') ||
 					(doze_buf[2] == 'w') || (doze_buf[2] == 'y') || (doze_buf[2] == 'z') ||
-					(doze_buf[2] == 0x5E) /* ^ */
+					(doze_buf[2] == 0x5E) 
 			   )
 			{
 				if (doze_buf[2] != 0x5E)
@@ -705,11 +715,44 @@ static void goodix_ts_work_func(struct work_struct *work)
 				gtp_i2c_write(i2c_connect_client, doze_buf, 3);
 			}
 		}
-		if (ts->use_irq)
-		{
-			gtp_irq_enable(ts);
+*/
+		/* h2o64 gestures handling */
+		if (ret > 0) {
+			if ((doze_buf[2] == 0xAA)) {
+				GTP_INFO("gesture: Slide Right (0xAA) to light up the screen!");
+				doze_status = DOZE_WAKEUP;
+				gesture_key = KEY_GESTURE_SLIDE_RIGHT;
+				report_gesture(ts);
+			} else if ((doze_buf[2] == 0xBB)) {
+				GTP_INFO("gesture: Slide Left (0xBB) to light up the screen!");
+				doze_status = DOZE_WAKEUP;
+				gesture_key = KEY_GESTURE_SLIDE_LEFT;
+				report_gesture(ts);
+			} else if ((doze_buf[2] == 0xBA)) {
+				GTP_INFO("gesture: Slide Up (0xBA) to light up the screen!");
+                		doze_status = DOZE_WAKEUP;
+				gesture_key = KEY_GESTURE_SLIDE_UP;
+				report_gesture(ts);
+			} else if ((doze_buf[2] == 0xAB)) {
+				GTP_INFO("gesture: Slide Down (0xAB) to light up the screen!");
+				doze_status = DOZE_WAKEUP;
+				gesture_key = KEY_GESTURE_SLIDE_DOWN;
+				report_gesture(ts);
+			} else if ((0xC0 == (doze_buf[2] & 0xC0))) {
+				GTP_INFO("gesture: Double click (0xC0) to light up the screen!");
+				doze_status = DOZE_WAKEUP;
+				gesture_key = KEY_GESTURE_DOUBLE_TAP;
+				report_gesture(ts);
+			} else {
+				doze_buf[2] = 0x00;
+				gtp_i2c_write(i2c_connect_client, doze_buf, 3);
+			}
 		}
-		return;
+
+	if (ts->use_irq) 
+		gtp_irq_enable(ts);
+
+	return;
 	}
 #endif
 
@@ -1204,19 +1247,11 @@ static s8 gtp_enter_doze(struct goodix_ts_data *ts)
 
 static void report_gesture(struct goodix_ts_data *ts )
 {
-	u8 doze_buf[3] = {0x81, 0x4B};
-	if(!proximity_open_flag)
-	{
-		input_report_key(ts->input_dev, KEY_ENTER, 1);
+	if (doze_status == DOZE_WAKEUP && gesture_key > 0) {
+		input_report_key(ts->input_dev, gesture_key, 1);
 		input_sync(ts->input_dev);
-		input_report_key(ts->input_dev, KEY_ENTER, 0);
+		input_report_key(ts->input_dev, gesture_key, 0);
 		input_sync(ts->input_dev);
-	}
-	else
-	{
-		GTP_INFO("pocket mode, gesture event not sent!!");
-		doze_buf[2] = 0x00;
-		gtp_i2c_write(i2c_connect_client, doze_buf, 3);
 	}
 }
 #endif
@@ -2034,6 +2069,13 @@ static s8 gtp_request_input_dev(struct goodix_ts_data *ts)
 #else
 	ts->input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 #endif
+#if GTP_GESTURE_WAKEUP
+	__set_bit(KEY_GESTURE_DOUBLE_TAP, ts->input_dev->keybit);
+	__set_bit(KEY_GESTURE_SLIDE_DOWN, ts->input_dev->keybit);
+	__set_bit(KEY_GESTURE_SLIDE_UP, ts->input_dev->keybit);
+	__set_bit(KEY_GESTURE_SLIDE_LEFT, ts->input_dev->keybit);
+	__set_bit(KEY_GESTURE_SLIDE_RIGHT, ts->input_dev->keybit);
+#endif
 	__set_bit(INPUT_PROP_DIRECT, ts->input_dev->propbit);
 	if (!have_vkey)
 	{
@@ -2046,6 +2088,11 @@ static s8 gtp_request_input_dev(struct goodix_ts_data *ts)
 
 #if GTP_GESTURE_WAKEUP
 	input_set_capability(ts->input_dev, EV_KEY, KEY_ENTER);
+	input_set_capability(ts->input_dev, EV_KEY, KEY_GESTURE_DOUBLE_TAP);
+	input_set_capability(ts->input_dev, EV_KEY, KEY_GESTURE_SLIDE_DOWN);
+	input_set_capability(ts->input_dev, EV_KEY, KEY_GESTURE_SLIDE_UP);
+	input_set_capability(ts->input_dev, EV_KEY, KEY_GESTURE_SLIDE_LEFT);
+	input_set_capability(ts->input_dev, EV_KEY, KEY_GESTURE_SLIDE_RIGHT);
 #endif
 
 #if GTP_CHANGE_X2Y
