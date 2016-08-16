@@ -77,7 +77,7 @@
 #elif defined(CONFIG_QL1008_YUSUN_BL889)
 #define GTP_GESTURE_WAKEUP    1
 #else
-#define GTP_GESTURE_WAKEUP    0
+#define GTP_GESTURE_WAKEUP    1
 #endif
 
 #define GTP_DEBUG_ON          0
