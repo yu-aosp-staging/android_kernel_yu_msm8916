@@ -73,6 +73,7 @@ obj-$(CONFIG_MSM_BCL_CTL)	+= msm_bcl.o
 obj-$(CONFIG_MSM_BCL_PERIPHERAL_CTL) += bcl_peripheral.o
 obj-$(CONFIG_POWER_RESET)	+= reset/
 obj-y				+= qcom/
+obj-$(CONFIG_THUNDERCHARGE_CONTROL) += thundercharge_control.o
 obj-$(CONFIG_YL_PM8916_VBUS)	+= yl_pm8916_vbus.o
 obj-$(CONFIG_YL_BQ24157_CHARGER)	+= yl_bq24157_charger.o
 obj-$(CONFIG_YL_FAN5405_CHARGER)	+= yl_fan5405_charger.o
