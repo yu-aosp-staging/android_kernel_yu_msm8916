@@ -55,7 +55,7 @@ libs-y		+= $(LIBGCC)
 ifeq ($(CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE),y)
 KBUILD_IMAGE	:= Image.gz-dtb
 else
-KBUILD_IMAGE	:= Image.gz
+KBUILD_IMAGE	:= Image.lz4
 endif
 
 KBUILD_DTBS	:= dtbs
