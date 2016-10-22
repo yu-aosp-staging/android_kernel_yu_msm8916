@@ -439,7 +439,6 @@ static struct snd_soc_dapm_route wcd9335_audio_paths[] = {
 
 static char const *rx_bit_format_text[] = {"S16_LE", "S24_LE"};
 static const char *const mi2s_tx_ch_text[] = {"One", "Two", "Three", "Four"};
-static char const *mi2s_rx_sample_rate_text[] = {"KHZ_48", "KHZ_96", "KHZ_192"};
 static const char *const loopback_mclk_text[] = {"DISABLE", "ENABLE"};
 static char const *pri_rx_sample_rate_text[] = {"KHZ_48", "KHZ_96",
 					"KHZ_192", "KHZ_8",
@@ -2353,7 +2352,6 @@ static struct snd_soc_dai_link msm8x16_wcd_dai[] = {
 		.platform_name = "msm-pcm-routing",
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
-#endif
 		.no_pcm = 1,
 		.be_id = MSM_BACKEND_DAI_QUATERNARY_MI2S_TX,
 		.be_hw_params_fixup = msm_be_hw_params_fixup,
