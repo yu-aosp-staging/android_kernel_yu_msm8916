@@ -716,6 +716,9 @@ static void goodix_ts_work_func(struct work_struct *work)
 			}
 		}
 */
+		// Temporary debug
+		GTP_INFO("Gesture %c detected!", doze_buf[2]);
+
 		/* h2o64 gestures handling */
 		if (ret > 0) {
 			if ((doze_buf[2] == 0xAA)) {
