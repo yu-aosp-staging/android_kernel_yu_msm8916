@@ -119,7 +119,6 @@ extern u8 gup_get_ic_fw_msg(struct i2c_client *client);
 
 #define DOZE_DISABLED 0
 #define DOZE_ENABLED 1
-#define DOZE_WAKEUP 2
 
 static int doze_status = DOZE_DISABLED;
 static s8 gtp_enter_doze(struct goodix_ts_data *ts);
@@ -356,7 +355,7 @@ static void goodix_ts_work_func(struct work_struct *work)
     struct goodix_ts_data *ts = NULL;
 
     u8 doze_buf[3] = {0x81, 0x4B};
-    uint16_t gesture_key = 0;
+    uint16_t gesture_key = KEY_UNKNOWN;
 
     ts = container_of(work, struct goodix_ts_data, work);
     if (ts->enter_update)
@@ -370,52 +369,42 @@ static void goodix_ts_work_func(struct work_struct *work)
         if (ret > 0) {
             if ((doze_buf[2] == 0xAA) && (support_gesture & TW_SUPPORT_RIGHT_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0xAA) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"right");
                 gesture_key = KEY_GESTURE_SLIDE_RIGHT;
             } else if ((doze_buf[2] == 0xBB) && (support_gesture & TW_SUPPORT_LEFT_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0xBB) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"left");
                 gesture_key = KEY_GESTURE_SLIDE_LEFT;
             } else if ((0xC0 == (doze_buf[2] & 0xC0)) && (support_gesture & TW_SUPPORT_DOUBLE_CLICK_WAKEUP)) {
                 GTP_INFO("double click to light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"double_click");
                 gesture_key = KEY_GESTURE_DOUBLE_TAP;
             } else if ((doze_buf[2] == 0xBA) && (support_gesture & TW_SUPPORT_UP_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0xBA) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"up");
                 gesture_key = KEY_GESTURE_SLIDE_UP;
             } else if ((doze_buf[2] == 0xAB) && (support_gesture & TW_SUPPORT_DOWN_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0xAB) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"down");
                 gesture_key = KEY_GESTURE_SLIDE_DOWN;
             } else if ((doze_buf[2] == 0x63) && (support_gesture & TW_SUPPORT_C_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0x63) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"c");
                 gesture_key = KEY_GESTURE_SLIDE_C;
             } else if ((doze_buf[2] == 0x65) && (support_gesture & TW_SUPPORT_E_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0x65) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"e");
                 gesture_key = KEY_GESTURE_SLIDE_E;
             } else if ((doze_buf[2] == 0x6D) && (support_gesture & TW_SUPPORT_M_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0x6D) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"m");
                 gesture_key = KEY_GESTURE_SLIDE_M;
             } else if ((doze_buf[2] == 0x6F) && (support_gesture & TW_SUPPORT_O_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0x6F) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"o");
                 gesture_key = KEY_GESTURE_SLIDE_O;
             } else if ((doze_buf[2] == 0x77) && (support_gesture & TW_SUPPORT_W_SLIDE_WAKEUP)) {
                 GTP_INFO("Slide(0x77) To Light up the screen!");
-                doze_status = DOZE_WAKEUP;
                 sprintf(wakeup_slide,"w");
                 gesture_key = KEY_GESTURE_SLIDE_W;
             } else {
@@ -425,8 +414,9 @@ static void goodix_ts_work_func(struct work_struct *work)
             }
         }
 
-        if (doze_status == DOZE_WAKEUP && gesture_key > 0) {
+        if (gesture_key != KEY_UNKNOWN) {
              input_report_key(ts->input_dev, gesture_key, 1);
+             input_sync(ts->input_dev);
              input_report_key(ts->input_dev, gesture_key, 0);
              input_sync(ts->input_dev);
 
@@ -2174,7 +2164,13 @@ static int goodix_ts_enable(struct input_dev *in_dev) {
     if (ts->pdata->resume)
         ts->pdata->resume();
 
+<<<<<<< HEAD
     mutex_lock(&ts->doze_mutex);
+=======
+#if GTP_SLIDE_WAKEUP
+/* begin to add mutex for doze mode liushilong@yulong.com on 2014-11-6 17:49*/
+	mutex_lock(&ts->doze_mutex);
+>>>>>>> cfd06a0... input: gt9xx_yl: Fix consecutive gestures with screen off
     doze_status = DOZE_DISABLED;
     mutex_unlock(&ts->doze_mutex);
     gtp_enable_irq_wake(ts, 0);
