@@ -2164,13 +2164,7 @@ static int goodix_ts_enable(struct input_dev *in_dev) {
     if (ts->pdata->resume)
         ts->pdata->resume();
 
-<<<<<<< HEAD
     mutex_lock(&ts->doze_mutex);
-=======
-#if GTP_SLIDE_WAKEUP
-/* begin to add mutex for doze mode liushilong@yulong.com on 2014-11-6 17:49*/
-	mutex_lock(&ts->doze_mutex);
->>>>>>> cfd06a0... input: gt9xx_yl: Fix consecutive gestures with screen off
     doze_status = DOZE_DISABLED;
     mutex_unlock(&ts->doze_mutex);
     gtp_enable_irq_wake(ts, 0);
