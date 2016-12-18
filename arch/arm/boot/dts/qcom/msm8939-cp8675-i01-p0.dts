@@ -47,10 +47,4 @@
 	qcom,lpm-workarounds {
 		/delete-property/ qcom,lpm-wa-skip-l2-spm;
 	};
-
-	mdss_mdp: qcom,mdss_mdp@1a00000 {
-		mdss_fb0: qcom,mdss_fb_primary {
-			qcom,mdss-fb-splash-logo-enabled;
-		};
-	};
 };
